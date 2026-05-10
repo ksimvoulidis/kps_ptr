@@ -2,989 +2,813 @@
 <html lang="el">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PPL Tracker">
 <title>PPL Tracker</title>
 <style>
-:root {
-  --bg: #000; --bg2: #1c1c1e; --bg3: #2c2c2e; --bg4: #3a3a3c;
-  --txt: #fff; --txt2: #ebebf5cc; --txt3: #ebebf599;
-  --sep: #38383a; --acc: #0a84ff; --red: #ff453a; --green: #30d158;
-  --orange: #ff9f0a; --purple: #bf5af2; --teal: #5ac8fa;
-  --card: #1c1c1e; --safe: env(safe-area-inset-bottom, 0px);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; background: var(--bg); color: var(--txt); font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; overflow: hidden; }
-#app { height: 100vh; display: flex; flex-direction: column; }
-.screen { display: none; flex: 1; overflow-y: auto; padding-bottom: calc(70px + var(--safe)); }
-.screen.active { display: block; }
-
-/* NAV */
-#nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(28,28,30,0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--sep); display: flex; padding-bottom: var(--safe); z-index: 100; }
-.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 0 10px; border: none; background: none; color: var(--txt3); font-size: 10px; gap: 3px; cursor: pointer; }
-.nav-btn.active { color: var(--acc); }
-.nav-btn svg { width: 24px; height: 24px; }
-
-/* HEADER */
-.page-header { padding: 56px 20px 12px; }
-.page-title { font-size: 34px; font-weight: 700; letter-spacing: -0.5px; }
-.page-sub { font-size: 15px; color: var(--txt3); margin-top: 4px; }
-
-/* CARDS */
-.card { background: var(--card); border-radius: 16px; margin: 0 16px 12px; overflow: hidden; }
-.card-header { padding: 14px 16px 10px; }
-.card-title { font-size: 13px; font-weight: 600; color: var(--txt3); text-transform: uppercase; letter-spacing: 0.5px; }
-.card-row { display: flex; align-items: center; padding: 12px 16px; border-top: 1px solid var(--sep); }
-.card-row:first-child { border-top: none; }
-.card-row-label { flex: 1; font-size: 16px; }
-.card-row-val { font-size: 16px; color: var(--txt3); }
-
-/* WORKOUT HOME */
-.next-workout { margin: 16px; background: linear-gradient(135deg, #1a3a5c, #0d2137); border-radius: 20px; padding: 20px; }
-.nw-label { font-size: 12px; font-weight: 600; color: var(--teal); text-transform: uppercase; letter-spacing: 1px; }
-.nw-title { font-size: 26px; font-weight: 700; margin: 6px 0 4px; }
-.nw-sub { font-size: 14px; color: var(--txt2); margin-bottom: 16px; }
-.nw-meta { display: flex; gap: 12px; margin-bottom: 18px; }
-.nw-chip { background: rgba(255,255,255,0.12); border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; }
-.btn-start { width: 100%; background: var(--acc); color: #fff; border: none; border-radius: 14px; padding: 14px; font-size: 17px; font-weight: 600; cursor: pointer; }
-.btn-start:active { opacity: 0.85; }
-
-.week-indicator { margin: 0 16px 12px; display: flex; gap: 8px; }
-.week-dot { flex: 1; height: 6px; border-radius: 3px; background: var(--bg3); }
-.week-dot.done { background: var(--green); }
-.week-dot.current { background: var(--acc); }
-
-/* ACTIVE WORKOUT */
-#workout-screen { background: var(--bg); }
-.workout-header { background: var(--bg2); padding: 54px 20px 16px; position: sticky; top: 0; z-index: 10; }
-.wh-row { display: flex; align-items: center; justify-content: space-between; }
-.wh-title { font-size: 20px; font-weight: 700; }
-.wh-week { font-size: 13px; color: var(--txt3); }
-.wh-close { width: 32px; height: 32px; background: var(--bg3); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; color: var(--txt); font-size: 18px; }
-
-.ex-card { margin: 12px 16px; background: var(--card); border-radius: 16px; overflow: hidden; }
-.ex-header { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-.ex-name { font-size: 16px; font-weight: 600; }
-.ex-presc { font-size: 13px; color: var(--txt3); margin-top: 2px; }
-.ex-status { display: flex; align-items: center; gap: 8px; }
-.ex-done-badge { background: var(--green); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
-.ex-expand { color: var(--txt3); font-size: 20px; transition: transform 0.2s; }
-.ex-expand.open { transform: rotate(180deg); }
-
-.ex-body { display: none; border-top: 1px solid var(--sep); }
-.ex-body.open { display: block; }
-.ex-tip { padding: 10px 16px; background: rgba(10,132,255,0.08); font-size: 13px; color: var(--teal); border-bottom: 1px solid var(--sep); }
-
-.set-row { display: flex; align-items: center; padding: 10px 16px; gap: 10px; border-bottom: 1px solid var(--sep); }
-.set-row:last-child { border-bottom: none; }
-.set-num { width: 28px; height: 28px; border-radius: 50%; background: var(--bg3); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--txt3); flex-shrink: 0; }
-.set-num.done { background: var(--green); color: #fff; }
-.set-inputs { display: flex; gap: 8px; flex: 1; }
-.set-input-group { flex: 1; }
-.set-input-label { font-size: 10px; color: var(--txt3); text-transform: uppercase; margin-bottom: 2px; }
-.set-input { width: 100%; background: var(--bg3); border: none; border-radius: 8px; padding: 8px 10px; color: var(--txt); font-size: 15px; font-weight: 600; text-align: center; }
-.set-input:focus { outline: none; background: var(--bg4); }
-.set-check { width: 36px; height: 36px; border-radius: 50%; background: var(--bg3); border: 2px solid var(--bg4); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-size: 16px; }
-.set-check.done { background: var(--green); border-color: var(--green); }
-.prev-best { padding: 6px 16px 8px; font-size: 12px; color: var(--txt3); }
-
-.btn-finish-workout { margin: 16px; background: var(--green); color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700; cursor: pointer; width: calc(100% - 32px); display: block; }
-.btn-finish-workout:active { opacity: 0.85; }
-.btn-finish-workout:disabled { background: var(--bg3); color: var(--txt3); }
-
-/* TIMER */
-#timer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; flex-direction: column; align-items: center; justify-content: center; }
-#timer-overlay.active { display: flex; }
-.timer-circle { width: 220px; height: 220px; position: relative; margin-bottom: 20px; }
-.timer-svg { transform: rotate(-90deg); }
-.timer-track { fill: none; stroke: var(--bg3); stroke-width: 8; }
-.timer-prog { fill: none; stroke: var(--acc); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
-.timer-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.timer-num { font-size: 54px; font-weight: 200; letter-spacing: -2px; }
-.timer-label { font-size: 14px; color: var(--txt3); }
-.timer-btns { display: flex; gap: 16px; }
-.timer-btn { padding: 12px 28px; border-radius: 30px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; }
-.timer-btn.skip { background: var(--bg3); color: var(--txt); }
-.timer-btn.plus { background: var(--bg3); color: var(--acc); }
-.timer-next-ex { font-size: 14px; color: var(--txt3); margin-bottom: 24px; text-align: center; }
-
-/* HISTORY */
-.hist-item { margin: 0 16px 10px; background: var(--card); border-radius: 16px; overflow: hidden; }
-.hist-header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: flex-start; cursor: pointer; }
-.hist-date { font-size: 15px; font-weight: 700; }
-.hist-name { font-size: 13px; color: var(--txt3); margin-top: 2px; }
-.hist-stats { display: flex; gap: 12px; }
-.hist-stat { text-align: right; }
-.hist-stat-val { font-size: 16px; font-weight: 700; color: var(--acc); }
-.hist-stat-label { font-size: 11px; color: var(--txt3); }
-.hist-detail { display: none; border-top: 1px solid var(--sep); padding: 12px 16px; }
-.hist-detail.open { display: block; }
-.hist-ex-row { font-size: 14px; color: var(--txt2); padding: 3px 0; }
-
-/* PROGRAM EDITOR */
-.prog-session { margin: 0 16px 16px; }
-.prog-session-title { font-size: 13px; font-weight: 600; color: var(--txt3); text-transform: uppercase; letter-spacing: 0.5px; padding: 0 4px 8px; }
-.prog-ex-item { background: var(--card); border-radius: 12px; margin-bottom: 8px; overflow: hidden; }
-.prog-ex-main { display: flex; align-items: center; padding: 12px 14px; cursor: pointer; }
-.prog-ex-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 12px; flex-shrink: 0; }
-.prog-ex-info { flex: 1; }
-.prog-ex-name { font-size: 15px; font-weight: 600; }
-.prog-ex-desc { font-size: 13px; color: var(--txt3); margin-top: 1px; }
-.prog-ex-arrow { color: var(--txt3); font-size: 18px; }
-.prog-ex-edit { display: none; border-top: 1px solid var(--sep); padding: 14px; }
-.prog-ex-edit.open { display: block; }
-.edit-field { margin-bottom: 12px; }
-.edit-label { font-size: 12px; color: var(--txt3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-.edit-input { width: 100%; background: var(--bg3); border: none; border-radius: 10px; padding: 10px 12px; color: var(--txt); font-size: 15px; }
-.edit-input:focus { outline: none; background: var(--bg4); }
-.edit-textarea { width: 100%; background: var(--bg3); border: none; border-radius: 10px; padding: 10px 12px; color: var(--txt); font-size: 14px; resize: none; height: 70px; }
-.edit-textarea:focus { outline: none; background: var(--bg4); }
-.edit-row { display: flex; gap: 10px; }
-.edit-row .edit-field { flex: 1; }
-.btn-save { background: var(--acc); color: #fff; border: none; border-radius: 10px; padding: 10px 20px; font-size: 15px; font-weight: 600; cursor: pointer; }
-.btn-del { background: rgba(255,69,58,0.15); color: var(--red); border: none; border-radius: 10px; padding: 10px 20px; font-size: 15px; font-weight: 600; cursor: pointer; }
-.btn-add-ex { width: calc(100% - 32px); margin: 0 16px 12px; background: rgba(10,132,255,0.1); color: var(--acc); border: 2px dashed rgba(10,132,255,0.3); border-radius: 12px; padding: 13px; font-size: 15px; font-weight: 600; cursor: pointer; }
-
-/* SETTINGS */
-.settings-section { margin: 0 16px 20px; }
-.settings-title { font-size: 13px; font-weight: 600; color: var(--txt3); text-transform: uppercase; letter-spacing: 0.5px; padding: 0 4px 8px; }
-.settings-card { background: var(--card); border-radius: 16px; overflow: hidden; }
-.settings-row { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--sep); cursor: pointer; }
-.settings-row:last-child { border-bottom: none; }
-.settings-row-label { flex: 1; font-size: 16px; }
-.settings-row-val { font-size: 15px; color: var(--txt3); margin-right: 6px; }
-.settings-arrow { color: var(--bg4); font-size: 18px; }
-select.settings-sel { background: transparent; border: none; color: var(--acc); font-size: 15px; font-weight: 600; appearance: none; cursor: pointer; }
-
-/* MODAL */
-#modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 300; align-items: flex-end; }
-#modal.active { display: flex; }
-.modal-sheet { background: var(--bg2); border-radius: 20px 20px 0 0; padding: 20px 20px calc(20px + var(--safe)); width: 100%; }
-.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; text-align: center; }
-.modal-btn { width: 100%; background: var(--bg3); border: none; border-radius: 12px; padding: 14px; font-size: 16px; color: var(--txt); cursor: pointer; margin-bottom: 10px; font-weight: 500; }
-.modal-btn.danger { color: var(--red); }
-.modal-btn.primary { background: var(--acc); color: #fff; font-weight: 600; }
-.modal-cancel { width: 100%; background: var(--bg3); border: none; border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 600; color: var(--txt); cursor: pointer; margin-top: 6px; }
-
-/* MISC */
-.empty-state { text-align: center; padding: 60px 30px; color: var(--txt3); }
-.empty-icon { font-size: 48px; margin-bottom: 12px; }
-.empty-txt { font-size: 17px; font-weight: 600; color: var(--txt2); margin-bottom: 6px; }
-.empty-sub { font-size: 14px; }
-.badge-week { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-.badge-str  { background: rgba(255,69,58,0.2);   color: var(--red); }
-.badge-hyp  { background: rgba(48,209,88,0.2);   color: var(--green); }
-.badge-sp   { background: rgba(191,90,242,0.2);  color: var(--purple); }
-.badge-del  { background: rgba(90,200,250,0.2);  color: var(--teal); }
-
-.progress-ring { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
-.ring-seg { flex: 1; height: 4px; border-radius: 2px; background: var(--bg3); }
-.ring-seg.done { background: var(--green); }
-.ring-seg.active { background: var(--acc); }
-
-.toast { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: rgba(48,209,88,0.9); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; z-index: 500; display: none; }
-.toast.show { display: block; animation: fadeInOut 2s forwards; }
-@keyframes fadeInOut { 0%{opacity:0;transform:translateX(-50%) translateY(-10px)} 15%{opacity:1;transform:translateX(-50%) translateY(0)} 75%{opacity:1} 100%{opacity:0} }
+:root{--fs:15px;--bg:#000;--bg2:#1c1c1e;--bg3:#2c2c2e;--bg4:#3a3a3c;--txt:#fff;--txt2:rgba(235,235,245,.8);--txt3:rgba(235,235,245,.5);--sep:#38383a;--acc:#0a84ff;--red:#ff453a;--grn:#30d158;--org:#ff9f0a;--pur:#bf5af2;--tel:#5ac8fa;--safe:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;font-size:var(--fs);overflow:hidden}
+#app{height:100vh;display:flex;flex-direction:column}
+.scr{display:none;flex:1;overflow-y:auto;padding-bottom:calc(68px + var(--safe))}
+.scr.on{display:block}
+#nav{position:fixed;bottom:0;left:0;right:0;background:rgba(28,28,30,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--sep);display:flex;padding-bottom:var(--safe);z-index:100}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 10px;border:none;background:none;color:var(--txt3);font-size:.6em;gap:3px;cursor:pointer;font-family:inherit}
+.nb.on{color:var(--acc)}
+.nb .ic{font-size:1.8em}
+.ph{padding:52px 16px 12px}
+.pt{font-size:2em;font-weight:700;letter-spacing:-.5px}
+.ps{font-size:.87em;color:var(--txt3);margin-top:4px}
+.card{background:var(--bg2);border-radius:16px;margin:0 14px 10px;overflow:hidden}
+.btn{border:none;border-radius:14px;padding:13px 20px;font-size:inherit;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-pri{background:var(--acc);color:#fff}
+.btn-full{width:100%;display:block}
+.btn-grn{background:var(--grn);color:#fff}
+.btn-ghost{background:var(--bg3);color:var(--txt)}
+.btn-red{background:rgba(255,69,58,.15);color:var(--red)}
+.btn:disabled{background:var(--bg3);color:var(--txt3);cursor:default;opacity:.5}
+.bdg{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.75em;font-weight:700}
+.prog-ring{display:flex;gap:4px;margin-bottom:14px}
+.prog-seg{flex:1;height:4px;border-radius:2px}
+.tabs{display:flex;gap:8px;padding:0 14px 12px}
+.tab-btn{flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-weight:700;font-size:inherit;font-family:inherit}
+/* workout */
+.wh{background:var(--bg2);padding:52px 16px 14px;position:sticky;top:0;z-index:10}
+.exc{margin:10px 14px;background:var(--bg2);border-radius:16px;overflow:hidden;border:1px solid var(--sep);transition:border-color .3s}
+.exc.done-all{border-color:rgba(48,209,88,.4)}
+.exc-hdr{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.exc-chevron{color:var(--txt3);font-size:1.2em;transition:transform .25s;display:inline-block;margin-left:8px}
+.exc-body{display:none;border-top:1px solid var(--sep)}
+.exc-body.open{display:block}
+.ex-tip{padding:8px 14px;background:rgba(10,132,255,.08);color:var(--tel);font-size:.82em;border-bottom:1px solid var(--sep)}
+.prev-best{padding:5px 14px;font-size:.78em;color:var(--txt3);border-bottom:1px solid var(--sep)}
+.set-row{display:flex;align-items:center;padding:10px 14px;gap:10px;border-top:1px solid var(--sep)}
+.sn{width:28px;height:28px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:.8em;font-weight:700;color:var(--txt3);flex-shrink:0;transition:background .2s,color .2s}
+.sn.done{background:var(--grn);color:#fff}
+.set-inputs{display:flex;gap:8px;flex:1}
+.set-ig{flex:1}
+.set-lbl{font-size:.7em;color:var(--txt3);text-transform:uppercase;margin-bottom:2px}
+.set-inp{width:100%;background:var(--bg3);border:none;border-radius:8px;padding:8px;color:var(--txt);font-size:inherit;font-weight:600;text-align:center;font-family:inherit}
+.set-inp:focus{outline:none;background:var(--bg4)}
+.sc{width:38px;height:38px;border-radius:50%;border:2px solid var(--bg4);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:1.1em;transition:background .2s,border-color .2s,color .2s;color:transparent}
+.sc.done{background:var(--grn);border-color:var(--grn);color:#fff}
+/* timer */
+#timer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+#timer.on{display:flex}
+.tmr-wrap{position:relative;width:220px;height:220px}
+.tmr-svg{transform:rotate(-90deg)}
+.tmr-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.tmr-num{font-size:3.5em;font-weight:200;letter-spacing:-2px}
+.tmr-btns{display:flex;gap:14px}
+/* history */
+.hist-item{margin:0 14px 10px;background:var(--bg2);border-radius:16px;overflow:hidden}
+.hist-det{display:none;border-top:1px solid var(--sep);padding:12px 16px}
+.hist-det.open{display:block}
+/* calendar */
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px}
+.cal-dot{width:5px;height:5px;border-radius:50%;background:var(--grn);margin-top:2px}
+/* program editor */
+.prog-ex{margin:0 14px 8px;background:var(--bg2);border-radius:14px;overflow:hidden}
+.prog-ex-edit{display:none;border-top:1px solid var(--sep);padding:14px 12px}
+.prog-ex-edit.open{display:block}
+.edit-lbl{font-size:.75em;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.edit-inp{width:100%;background:var(--bg3);border:none;border-radius:10px;padding:9px 11px;color:var(--txt);font-size:inherit;font-family:inherit}
+.edit-inp:focus{outline:none;background:var(--bg4)}
+.edit-ta{height:70px;resize:none}
+.edit-row{display:flex;gap:8px;margin-bottom:10px}
+.edit-row .ef{flex:1}
+.re-btn{background:none;border:none;cursor:pointer;font-size:1em;padding:2px 6px;line-height:1;font-family:inherit;color:var(--txt3)}
+.re-btn:disabled{color:var(--bg4);cursor:default}
+/* modal */
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:300;align-items:flex-end}
+#modal.on{display:flex}
+.modal-sheet{background:var(--bg2);border-radius:20px 20px 0 0;padding:20px 16px;padding-bottom:calc(20px + var(--safe));width:100%}
+.m-title{text-align:center;font-weight:700;font-size:1.1em;margin-bottom:8px}
+.m-msg{text-align:center;color:var(--txt3);font-size:.88em;margin-bottom:16px}
+.m-btn{width:100%;border:none;border-radius:12px;padding:14px;font-size:inherit;font-weight:600;cursor:pointer;margin-bottom:8px;display:block;font-family:inherit;text-align:center}
+/* settings */
+.sett-sec{margin:0 14px 16px}
+.sett-title{font-size:.78em;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;padding:0 4px 8px}
+.sett-card{background:var(--bg2);border-radius:16px;overflow:hidden}
+.sett-row{display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid var(--sep);cursor:pointer}
+.sett-row:last-child{border-bottom:none}
+.fs-pick{display:flex;gap:8px}
+.fs-btn{flex:1;border:none;border-radius:10px;padding:8px 4px;cursor:pointer;font-weight:700;font-family:inherit}
+/* toast */
+#toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(48,209,88,.92);color:#fff;padding:10px 20px;border-radius:20px;font-size:.88em;font-weight:700;z-index:500;display:none;white-space:nowrap;pointer-events:none}
+#toast.on{display:block}
+.empty{text-align:center;padding:60px 30px;color:var(--txt3)}
 </style>
 </head>
 <body>
 <div id="app">
-  <!-- HOME -->
-  <div id="home-screen" class="screen active">
-    <div class="page-header"><div class="page-title">Γεια σου 👋</div><div class="page-sub" id="home-date"></div></div>
-    <div id="home-content"></div>
-  </div>
-  <!-- WORKOUT -->
-  <div id="workout-screen" class="screen">
-    <div class="workout-header">
-      <div class="wh-row">
+  <div id="scr-home"     class="scr on"></div>
+  <div id="scr-workout"  class="scr">
+    <div class="wh">
+      <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
-          <div class="wh-title" id="wh-title"></div>
-          <div class="wh-week" id="wh-week"></div>
+          <div id="wh-name" style="font-weight:700;font-size:1.2em"></div>
+          <div id="wh-week" style="color:var(--txt3);font-size:.85em;margin-top:2px"></div>
         </div>
-        <button class="wh-close" onclick="closeWorkout()">✕</button>
+        <button class="btn btn-ghost" style="width:32px;height:32px;padding:0;border-radius:50%;font-size:1.1em" onclick="closeWorkout()">✕</button>
       </div>
     </div>
     <div id="workout-body"></div>
   </div>
-  <!-- HISTORY -->
-  <div id="history-screen" class="screen">
-    <div class="page-header"><div class="page-title">Ιστορικό</div><div class="page-sub" id="hist-sub"></div></div>
-    <div id="history-list"></div>
-  </div>
-  <!-- PROGRAM -->
-  <div id="program-screen" class="screen">
-    <div class="page-header"><div class="page-title">Πρόγραμμα</div><div class="page-sub">Επεξεργασία ασκήσεων</div></div>
-    <div id="program-tabs" style="display:flex;gap:8px;padding:0 16px 12px">
-      <button class="prog-tab-btn active" onclick="showProgTab('push')" id="ptab-push" style="flex:1;background:rgba(255,69,58,0.2);color:var(--red);border:none;border-radius:10px;padding:10px;font-size:14px;font-weight:700;cursor:pointer">PUSH</button>
-      <button class="prog-tab-btn" onclick="showProgTab('pull')" id="ptab-pull" style="flex:1;background:var(--bg3);color:var(--txt3);border:none;border-radius:10px;padding:10px;font-size:14px;font-weight:700;cursor:pointer">PULL</button>
-      <button class="prog-tab-btn" onclick="showProgTab('legs')" id="ptab-legs" style="flex:1;background:var(--bg3);color:var(--txt3);border:none;border-radius:10px;padding:10px;font-size:14px;font-weight:700;cursor:pointer">LEGS</button>
+  <div id="scr-history"  class="scr">
+    <div class="ph"><div class="pt">Ιστορικό</div><div class="ps" id="hist-count"></div></div>
+    <div class="tabs">
+      <button id="htab-list" class="tab-btn" onclick="setHistTab('list')">📋 Λίστα</button>
+      <button id="htab-cal"  class="tab-btn" onclick="setHistTab('cal')">📅 Ημερολόγιο</button>
     </div>
-    <div id="program-body"></div>
+    <div id="hist-list"></div>
+    <div id="hist-cal" style="display:none"></div>
   </div>
-  <!-- SETTINGS -->
-  <div id="settings-screen" class="screen">
-    <div class="page-header"><div class="page-title">Ρυθμίσεις</div></div>
+  <div id="scr-program"  class="scr">
+    <div class="ph"><div class="pt">Πρόγραμμα</div><div class="ps">Επεξεργασία & Αναδιάταξη</div></div>
+    <div class="tabs">
+      <button id="ptab-push" class="tab-btn" onclick="setProgTab('push')">💪 PUSH</button>
+      <button id="ptab-pull" class="tab-btn" onclick="setProgTab('pull')">🏋️ PULL</button>
+      <button id="ptab-legs" class="tab-btn" onclick="setProgTab('legs')">🦵 LEGS</button>
+    </div>
+    <div id="prog-body"></div>
+  </div>
+  <div id="scr-settings" class="scr">
+    <div class="ph"><div class="pt">Ρυθμίσεις</div></div>
     <div id="settings-body"></div>
   </div>
-  <!-- NAV -->
   <div id="nav">
-    <button class="nav-btn active" onclick="showScreen('home')" id="nav-home">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-      <span>Σήμερα</span>
-    </button>
-    <button class="nav-btn" onclick="showScreen('workout-start')" id="nav-workout">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>
-      <span>Προπόνηση</span>
-    </button>
-    <button class="nav-btn" onclick="showScreen('history')" id="nav-history">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
-      <span>Ιστορικό</span>
-    </button>
-    <button class="nav-btn" onclick="showScreen('program')" id="nav-program">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-      <span>Πρόγραμμα</span>
-    </button>
-    <button class="nav-btn" onclick="showScreen('settings')" id="nav-settings">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
-      <span>Ρυθμίσεις</span>
-    </button>
+    <button class="nb on"  id="nb-home"     onclick="goTo('home')">    <span class="ic">🏠</span><span>Σήμερα</span></button>
+    <button class="nb"     id="nb-workout"  onclick="startWorkout()">  <span class="ic">🏋️</span><span>Εκκίνηση</span></button>
+    <button class="nb"     id="nb-history"  onclick="goTo('history')"> <span class="ic">📋</span><span>Ιστορικό</span></button>
+    <button class="nb"     id="nb-program"  onclick="goTo('program')"> <span class="ic">📝</span><span>Πρόγραμμα</span></button>
+    <button class="nb"     id="nb-settings" onclick="goTo('settings')"><span class="ic">⚙️</span><span>Ρυθμίσεις</span></button>
   </div>
 </div>
 
-<!-- TIMER OVERLAY -->
-<div id="timer-overlay">
-  <div class="timer-next-ex" id="timer-next"></div>
-  <div class="timer-circle">
-    <svg class="timer-svg" width="220" height="220" viewBox="0 0 220 220">
-      <circle class="timer-track" cx="110" cy="110" r="100"/>
-      <circle class="timer-prog" id="timer-circle" cx="110" cy="110" r="100" stroke-dasharray="628" stroke-dashoffset="0"/>
+<div id="timer">
+  <div id="tmr-next" style="font-size:.88em;color:var(--txt3);text-align:center;max-width:260px;padding:0 20px"></div>
+  <div class="tmr-wrap">
+    <svg class="tmr-svg" width="220" height="220" viewBox="0 0 220 220">
+      <circle cx="110" cy="110" r="100" fill="none" stroke="var(--bg3)" stroke-width="10"/>
+      <circle id="tmr-ring" cx="110" cy="110" r="100" fill="none" stroke="var(--acc)" stroke-width="10"
+        stroke-linecap="round" stroke-dasharray="628.3" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear"/>
     </svg>
-    <div class="timer-text">
-      <div class="timer-num" id="timer-display">2:00</div>
-      <div class="timer-label">ανάπαυση</div>
+    <div class="tmr-txt">
+      <div id="tmr-disp" class="tmr-num">2:00</div>
+      <div style="font-size:.88em;color:var(--txt3)">ανάπαυση</div>
     </div>
   </div>
-  <div class="timer-btns">
-    <button class="timer-btn plus" onclick="addTimerTime(30)">+30\"</button>
-    <button class="timer-btn skip" onclick="skipTimer()">Παράλειψη</button>
+  <div class="tmr-btns">
+    <button class="btn btn-ghost" style="color:var(--acc)" onclick="timerAdd(30)">+30"</button>
+    <button class="btn btn-ghost" onclick="timerSkip()">Παράλειψη ›</button>
   </div>
 </div>
 
-<!-- MODAL -->
-<div id="modal">
-  <div class="modal-sheet" id="modal-sheet"></div>
+<div id="modal" onclick="if(event.target.id==='modal')closeModal()">
+  <div class="modal-sheet" id="modal-inner"></div>
 </div>
-
-<div class="toast" id="toast"></div>
+<div id="toast"></div>
+<input id="file-in" type="file" accept=".json" style="display:none">
 
 <script>
-// ══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // DATA
-// ══════════════════════════════════════════════════════
-const DEFAULT_PROGRAM = {
-  push: {
-    name: 'PUSH', color: '#ff453a', icon: '💪',
-    exercises: [
-      { id:'p1', name:'Bench Press', sets_w1:'5×3-5', sets_w2:'4×8-10', sets_w3:'4×4-5', sets_w4:'2×8', rest_w1:210, rest_w2:150, rest_w3:180, rest_w4:120, tip:'Κατέβαση 2-3\'\'. Ώμοι πίσω & κάτω. Πόδια σταθερά. Εβδ.2: tempo 3-1-2.' },
-      { id:'p2', name:'Incline DB Press', sets_w1:'4×5', sets_w2:'3×10-12', sets_w3:'4×6', sets_w4:'2×10', rest_w1:150, rest_w2:120, rest_w3:150, rest_w4:90, tip:'Γωνία 30°. Ελεγχόμενη κάθοδος. Αισθάνεσαι το στήθος.' },
-      { id:'p3', name:'Cable Chest Fly', sets_w1:'—', sets_w2:'3×12-15', sets_w3:'3×12', sets_w4:'2×12', rest_w1:0, rest_w2:90, rest_w3:90, rest_w4:90, tip:'Χαμηλό βάρος, πλήρης τόξο. Squeeze στην κορυφή.' },
-      { id:'p4', name:'Overhead Press', sets_w1:'4×4-5', sets_w2:'3×8-10', sets_w3:'4×5', sets_w4:'2×8', rest_w1:180, rest_w2:150, rest_w3:180, rest_w4:120, tip:'Πίεσε ίσια πάνω. Μη ξεκουράς τη μπάρα μεταξύ reps.' },
-      { id:'p5', name:'Lateral Raise', sets_w1:'3×10', sets_w2:'3×15', sets_w3:'3×12', sets_w4:'2×15', rest_w1:90, rest_w2:90, rest_w3:90, rest_w4:60, tip:'Ελαφρύ βάρος πάντα. Αγκώνας ελαφρά λυγιστός.' },
-      { id:'p6', name:'Tricep Pushdown (rope)', sets_w1:'3×8', sets_w2:'3×12-15', sets_w3:'3×10', sets_w4:'2×12', rest_w1:90, rest_w2:90, rest_w3:90, rest_w4:60, tip:'Rope: άνοιγμα στο κάτω σημείο. Αγκώνες σταθεροί.' },
-      { id:'p7', name:'Close-grip Bench / Dips', sets_w1:'3×5-6', sets_w2:'3×10-12', sets_w3:'3×6-8', sets_w4:'—', rest_w1:120, rest_w2:90, rest_w3:120, rest_w4:0, tip:'Αν τα Dips δεν ενοχλούν τον ώμο — προτίμησέ τα.' },
-    ]
-  },
-  pull: {
-    name: 'PULL', color: '#30d158', icon: '🏋️',
-    exercises: [
-      { id:'pl1', name:'Deadlift', sets_w1:'4×3-4', sets_w2:'3×6-8', sets_w3:'4×4-5', sets_w4:'2×5', rest_w1:240, rest_w2:180, rest_w3:210, rest_w4:120, tip:'Ουδέτερη σπονδυλική. Αν έχεις πλάτη: Romanian DL.' },
-      { id:'pl2', name:'Weighted Pull-up / Lat Pulldown', sets_w1:'4×4-5', sets_w2:'3×8-10', sets_w3:'4×5-6', sets_w4:'2×8', rest_w1:180, rest_w2:120, rest_w3:150, rest_w4:90, tip:'Pull-ups: πρόσθεσε βάρος (belt). Lat: τράβα προς στήθος.' },
-      { id:'pl3', name:'Barbell Row (Bent-over)', sets_w1:'4×4-5', sets_w2:'3×8-10', sets_w3:'4×5', sets_w4:'2×8', rest_w1:180, rest_w2:150, rest_w3:180, rest_w4:120, tip:'Τράβα στον αφαλό. Ωμοπλάτες μαζί στο τέλος.' },
-      { id:'pl4', name:'Seated Cable Row', sets_w1:'3×6-8', sets_w2:'3×10-12', sets_w3:'3×8', sets_w4:'2×12', rest_w1:120, rest_w2:90, rest_w3:120, rest_w4:60, tip:'Squeeze ωμοπλάτες. Μη γέρνεις υπερβολικά πίσω.' },
-      { id:'pl5', name:'Face Pull', sets_w1:'3×12', sets_w2:'3×15', sets_w3:'3×12', sets_w4:'2×15', rest_w1:90, rest_w2:90, rest_w3:90, rest_w4:60, tip:'Υγεία ώμων. Αγκώνες ψηλά, εξωτερική στροφή.' },
-      { id:'pl6', name:'Barbell / EZ-Bar Curl', sets_w1:'3×5-6', sets_w2:'3×10-12', sets_w3:'3×6-8', sets_w4:'2×10', rest_w1:90, rest_w2:90, rest_w3:90, rest_w4:60, tip:'Αργή κατέβαση (3\'\'). Μη ταλαντεύεσαι.' },
-      { id:'pl7', name:'Hammer Curl', sets_w1:'—', sets_w2:'3×12', sets_w3:'2×10', sets_w4:'—', rest_w1:0, rest_w2:90, rest_w3:90, rest_w4:0, tip:'Ουδέτερη λαβή. Ελαφρύ βάρος, πλήρης εύρος.' },
-    ]
-  },
-  legs: {
-    name: 'LEGS', color: '#bf5af2', icon: '🦵',
-    exercises: [
-      { id:'l1', name:'Squat', sets_w1:'5×3-4', sets_w2:'4×8-10', sets_w3:'4×4-5', sets_w4:'2×6', rest_w1:240, rest_w2:180, rest_w3:210, rest_w4:120, tip:'Εβδ.2: tempo 3-1-2 (κάτω αργά). Γόνατα ευθεία με δάχτυλα.' },
-      { id:'l2', name:'Romanian Deadlift', sets_w1:'4×5', sets_w2:'3×10-12', sets_w3:'4×6', sets_w4:'2×8', rest_w1:180, rest_w2:120, rest_w3:150, rest_w4:90, tip:'Αίσθηση stretch πίσω από γόνατα. Πλάτη ίσια.' },
-      { id:'l3', name:'Leg Press', sets_w1:'4×6-8', sets_w2:'3×12-15', sets_w3:'4×8', sets_w4:'2×12', rest_w1:150, rest_w2:120, rest_w3:150, rest_w4:90, tip:'Πόδια ψηλά = γλουτοί. Χαμηλά = τετρακέφαλοι.' },
-      { id:'l4', name:'Leg Curl', sets_w1:'3×8', sets_w2:'3×12-15', sets_w3:'3×10', sets_w4:'2×12', rest_w1:90, rest_w2:90, rest_w3:90, rest_w4:60, tip:'Αργή κατέβαση (3\'\'). Ισορροπία μυών = προστασία γονάτων.' },
-      { id:'l5', name:'Bulgarian Split Squat', sets_w1:'3×5/πλ.', sets_w2:'3×10/πλ.', sets_w3:'3×6/πλ.', sets_w4:'—', rest_w1:120, rest_w2:90, rest_w3:120, rest_w4:0, tip:'Δύσκολη αλλά εξαιρετική. Αν ενοχλεί: Walking Lunge.' },
-      { id:'l6', name:'Calf Raise (Standing)', sets_w1:'4×8', sets_w2:'4×15-20', sets_w3:'4×10', sets_w4:'2×15', rest_w1:60, rest_w2:60, rest_w3:60, rest_w4:60, tip:'Πλήρης εύρος — μέχρι κάτω αργά. Χρειάζονται όγκο.' },
-      { id:'l7', name:'Plank + Ab Wheel', sets_w1:'3×30"', sets_w2:'3×45"', sets_w3:'3×45"', sets_w4:'2×30"', rest_w1:60, rest_w2:60, rest_w3:60, rest_w4:60, tip:'Core = σταθεροποιητής. Σώμα ίσιο σαν σανίδα.' },
-    ]
-  }
+// ═══════════════════════════════════════════
+var DEF = {
+  push:{name:'PUSH',color:'#ff453a',icon:'💪',exercises:[
+    {id:'p1',name:'Bench Press',        s1:'5×3-5',   s2:'4×8-10', s3:'4×4-5',   s4:'2×8',    r1:210,r2:150,r3:180,r4:90, tip:'Κατέβαση 2-3\'\'. Ώμοι πίσω & κάτω. Εβδ.2: tempo 3-1-2.'},
+    {id:'p2',name:'Incline DB Press',   s1:'4×5',     s2:'3×10-12',s3:'4×6',     s4:'2×10',   r1:150,r2:120,r3:150,r4:90, tip:'Γωνία 30°. Ελεγχόμενη κάθοδος. Αισθάνεσαι το στήθος.'},
+    {id:'p3',name:'Cable Chest Fly',    s1:'—',       s2:'3×12-15',s3:'3×12',    s4:'2×12',   r1:0,  r2:90, r3:90, r4:90, tip:'Χαμηλό βάρος, πλήρης τόξο. Squeeze στην κορυφή.'},
+    {id:'p4',name:'Overhead Press',     s1:'4×4-5',   s2:'3×8-10', s3:'4×5',     s4:'2×8',    r1:180,r2:150,r3:180,r4:120,tip:'Πίεσε ίσια πάνω. Μη ξεκουράς τη μπάρα μεταξύ reps.'},
+    {id:'p5',name:'Lateral Raise',      s1:'3×10',    s2:'3×15',   s3:'3×12',    s4:'2×15',   r1:90, r2:90, r3:90, r4:60, tip:'Ελαφρύ βάρος πάντα. Αγκώνας ελαφρά λυγιστός.'},
+    {id:'p6',name:'Tricep Pushdown',    s1:'3×8',     s2:'3×12-15',s3:'3×10',    s4:'2×12',   r1:90, r2:90, r3:90, r4:60, tip:'Rope: άνοιγμα στο κάτω σημείο. Αγκώνες σταθεροί.'},
+    {id:'p7',name:'Close-grip Bench',   s1:'3×5-6',   s2:'3×10-12',s3:'3×6-8',   s4:'—',      r1:120,r2:90, r3:120,r4:0,  tip:'Εναλλακτικά Dips αν δεν ενοχλεί τον ώμο.'}
+  ]},
+  pull:{name:'PULL',color:'#30d158',icon:'🏋️',exercises:[
+    {id:'pl1',name:'Deadlift',           s1:'4×3-4',   s2:'3×6-8',  s3:'4×4-5',   s4:'2×5',    r1:240,r2:180,r3:210,r4:120,tip:'Ουδέτερη σπονδυλική. Πρόβλημα πλάτης → Romanian DL.'},
+    {id:'pl2',name:'Pull-up / Lat Pull', s1:'4×4-5',   s2:'3×8-10', s3:'4×5-6',   s4:'2×8',    r1:180,r2:120,r3:150,r4:90, tip:'Pull-ups: πρόσθεσε βάρος (belt). Lat: τράβα προς στήθος.'},
+    {id:'pl3',name:'Barbell Row',        s1:'4×4-5',   s2:'3×8-10', s3:'4×5',     s4:'2×8',    r1:180,r2:150,r3:180,r4:120,tip:'Τράβα στον αφαλό. Ωμοπλάτες μαζί στο τέλος.'},
+    {id:'pl4',name:'Seated Cable Row',   s1:'3×6-8',   s2:'3×10-12',s3:'3×8',     s4:'2×12',   r1:120,r2:90, r3:120,r4:60, tip:'Squeeze ωμοπλάτες. Μη γέρνεις υπερβολικά πίσω.'},
+    {id:'pl5',name:'Face Pull',          s1:'3×12',    s2:'3×15',   s3:'3×12',    s4:'2×15',   r1:90, r2:90, r3:90, r4:60, tip:'Υγεία ώμων — κάνε το ΠΑΝΤΑ. Αγκώνες ψηλά.'},
+    {id:'pl6',name:'Barbell Curl',       s1:'3×5-6',   s2:'3×10-12',s3:'3×6-8',   s4:'2×10',   r1:90, r2:90, r3:90, r4:60, tip:'Αργή κατέβαση (3\'\'). Μη ταλαντεύεσαι.'},
+    {id:'pl7',name:'Hammer Curl',        s1:'—',       s2:'3×12',   s3:'2×10',    s4:'—',      r1:0,  r2:90, r3:90, r4:0,  tip:'Ουδέτερη λαβή. Ελαφρύ βάρος, πλήρης εύρος.'}
+  ]},
+  legs:{name:'LEGS',color:'#bf5af2',icon:'🦵',exercises:[
+    {id:'l1',name:'Squat',               s1:'5×3-4',   s2:'4×8-10', s3:'4×4-5',   s4:'2×6',    r1:240,r2:180,r3:210,r4:120,tip:'Εβδ.2: tempo 3-1-2. Γόνατα ευθεία με δάχτυλα.'},
+    {id:'l2',name:'Romanian Deadlift',   s1:'4×5',     s2:'3×10-12',s3:'4×6',     s4:'2×8',    r1:180,r2:120,r3:150,r4:90, tip:'Αίσθηση stretch πίσω από γόνατα. Πλάτη ίσια.'},
+    {id:'l3',name:'Leg Press',           s1:'4×6-8',   s2:'3×12-15',s3:'4×8',     s4:'2×12',   r1:150,r2:120,r3:150,r4:90, tip:'Πόδια ψηλά = γλουτοί. Χαμηλά = τετρακέφαλοι.'},
+    {id:'l4',name:'Leg Curl',            s1:'3×8',     s2:'3×12-15',s3:'3×10',    s4:'2×12',   r1:90, r2:90, r3:90, r4:60, tip:'Αργή κατέβαση (3\'\'). Ισορροπία = προστασία γονάτων.'},
+    {id:'l5',name:'Bulgarian Split Sq.', s1:'3×5/πλ.', s2:'3×10/πλ.',s3:'3×6/πλ.',s4:'—',     r1:120,r2:90, r3:120,r4:0,  tip:'Αν ενοχλεί το γόνατο: Walking Lunge.'},
+    {id:'l6',name:'Calf Raise',          s1:'4×8',     s2:'4×15-20',s3:'4×10',    s4:'2×15',   r1:60, r2:60, r3:60, r4:60, tip:'Πλήρης εύρος — μέχρι κάτω αργά.'},
+    {id:'l7',name:'Plank + Ab Wheel',    s1:'3×30"',   s2:'3×45"',  s3:'3×45"',   s4:'2×30"',  r1:60, r2:60, r3:60, r4:60, tip:'Core = σταθεροποιητής για όλες τις βαριές ασκήσεις.'}
+  ]}
 };
+var WK=[{l:'Εβδ.1 — ΔΥΝΑΜΗ',c:'#ff453a'},{l:'Εβδ.2 — ΥΠΕΡΤΡΟΦΙΑ',c:'#30d158'},{l:'Εβδ.3 — ΔΥΝΑΜΗ+',c:'#bf5af2'},{l:'Εβδ.4 — ΑΠΟΦΟΡΤΙΣΗ',c:'#5ac8fa'}];
+var SO=['push','pull','legs'];
+var FS={sm:'13px',md:'15px',lg:'17px',xl:'20px'};
 
-const WEEK_INFO = [
-  { label:'Εβδ.1 — ΔΥΝΑΜΗ',    badge:'badge-str',  desc:'Βαριά βάρη ~85% 1RM. Αύξησε +2.5kg από τον προηγούμενο κύκλο.' },
-  { label:'Εβδ.2 — ΥΠΕΡΤΡΟΦΙΑ',badge:'badge-hyp',  desc:'Tempo 3-1-2. Τελ. set: 1-2 reps από αποτυχία.' },
-  { label:'Εβδ.3 — ΔΥΝΑΜΗ+',   badge:'badge-sp',   desc:'Βαρύτερα από Εβδ.1. Η πιο εντατική εβδομάδα.' },
-  { label:'Εβδ.4 — ΑΠΟΦΟΡΤΙΣΗ',badge:'badge-del',  desc:'2 sets @ 50-60%. Αναγκαία — εδώ χτίζεται ο μυς.' },
-];
-const SESSION_ORDER = ['push','pull','legs'];
-
-// ══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // STATE
-// ══════════════════════════════════════════════════════
-function loadState() {
-  try {
-    return JSON.parse(localStorage.getItem('pplState') || 'null') || {
-      cycleWeek: 1, sessionIdx: 0, totalWorkouts: 0,
-      program: DEFAULT_PROGRAM,
-      logs: [],
-      restTimes: { str: 210, hyp: 120, sp: 180, del: 90 },
-      currentWorkout: null
-    };
-  } catch(e) { return { cycleWeek:1, sessionIdx:0, totalWorkouts:0, program:DEFAULT_PROGRAM, logs:[], restTimes:{str:210,hyp:120,sp:180,del:90}, currentWorkout:null }; }
+// ═══════════════════════════════════════════
+var DB=null,DB_READY=false,DB_NAME='ppl-tracker-db',DB_STORE='kv',DB_KEY='ppl5',SAVE_CHAIN=Promise.resolve(),STORAGE_MODE='IndexedDB';
+function defState(){return{cw:1,si:0,total:0,prog:JSON.parse(JSON.stringify(DEF)),logs:[],active:null,fs:'md'}}
+function normST(d){
+  var b=defState();d=d||{};
+  return{cw:d.cw||b.cw,si:d.si!==undefined?d.si:b.si,total:d.total||0,prog:d.prog||b.prog,logs:Array.isArray(d.logs)?d.logs:b.logs,active:d.active||null,fs:d.fs||b.fs};
 }
-function saveState() { localStorage.setItem('pplState', JSON.stringify(STATE)); }
-let STATE = loadState();
-
-// ══════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════
-function getSetsKey(w) { return ['sets_w1','sets_w2','sets_w3','sets_w4'][w-1]; }
-function getRestKey(w) { return ['rest_w1','rest_w2','rest_w3','rest_w4'][w-1]; }
-function parseSetCount(setsStr) {
-  if (!setsStr || setsStr === '—') return 0;
-  const m = setsStr.match(/^(\d+)/);
-  return m ? parseInt(m[1]) : 3;
-}
-function formatDate(iso) {
-  const d = new Date(iso);
-  const days = ['Κυρ','Δευ','Τρί','Τετ','Πέμ','Παρ','Σαβ'];
-  const months = ['Ιαν','Φεβ','Μαρ','Απρ','Μαΐ','Ιουν','Ιουλ','Αυγ','Σεπ','Οκτ','Νοε','Δεκ'];
-  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
-}
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show';
-  setTimeout(() => t.className = 'toast', 2200);
-}
-function getBestForExercise(exId) {
-  for (let i = STATE.logs.length - 1; i >= 0; i--) {
-    const log = STATE.logs[i];
-    const ex = log.exercises.find(e => e.id === exId);
-    if (ex && ex.sets.length) {
-      const best = ex.sets.reduce((b,s) => (s.weight > b.weight ? s : b), ex.sets[0]);
-      if (best.weight > 0) return `Καλύτερο: ${best.weight}kg × ${best.reps}`;
-    }
-  }
-  return null;
-}
-
-// ══════════════════════════════════════════════════════
-// NAVIGATION
-// ══════════════════════════════════════════════════════
-let currentScreen = 'home';
-function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  if (name === 'workout-start') {
-    startWorkout();
-    return;
-  }
-  const scr = document.getElementById(name + '-screen');
-  if (scr) scr.classList.add('active');
-  const nav = document.getElementById('nav-' + name);
-  if (nav) nav.classList.add('active');
-  currentScreen = name;
-  if (name === 'home') renderHome();
-  if (name === 'history') renderHistory();
-  if (name === 'program') renderProgram();
-  if (name === 'settings') renderSettings();
-}
-
-// ══════════════════════════════════════════════════════
-// HOME
-// ══════════════════════════════════════════════════════
-function renderHome() {
-  const d = new Date();
-  const days = ['Κυριακή','Δευτέρα','Τρίτη','Τετάρτη','Πέμπτη','Παρασκευή','Σάββατο'];
-  const months = ['Ιανουαρίου','Φεβρουαρίου','Μαρτίου','Απριλίου','Μαΐου','Ιουνίου','Ιουλίου','Αυγούστου','Σεπτεμβρίου','Οκτωβρίου','Νοεμβρίου','Δεκεμβρίου'];
-  document.getElementById('home-date').textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
-
-  const w = STATE.cycleWeek;
-  const si = STATE.sessionIdx;
-  const sessionKey = SESSION_ORDER[si];
-  const sess = STATE.program[sessionKey];
-  const wi = WEEK_INFO[w-1];
-  const exCount = sess.exercises.filter(e => getSetsKey(w) && e[getSetsKey(w)] !== '—').length;
-  const totalSess = STATE.totalWorkouts;
-
-  // Progress in current cycle
-  const cycleProgress = (si + (w-1)*3);
-  let progressHTML = '<div class="progress-ring">';
-  for (let i=0;i<12;i++) {
-    let cls = i < cycleProgress ? 'done' : (i === cycleProgress ? 'active' : '');
-    progressHTML += `<div class="ring-seg ${cls}"></div>`;
-  }
-  progressHTML += '</div>';
-
-  // Last 3 workouts
-  const recent = STATE.logs.slice(-3).reverse();
-  let recentHTML = '';
-  recent.forEach(log => {
-    const totalVol = log.exercises.reduce((s,e) => s + e.sets.reduce((ss,set) => ss + (set.weight*set.reps||0),0), 0);
-    recentHTML += `
-      <div class="card" onclick="toggleHistItem('r${log.id}')">
-        <div class="card-row">
-          <div>
-            <div style="font-size:15px;font-weight:700">${log.sessionName}</div>
-            <div style="font-size:13px;color:var(--txt3)">${formatDate(log.date)}</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:16px;font-weight:700;color:var(--acc)">${totalVol > 0 ? totalVol.toLocaleString()+'kg' : log.exercises.length+' ασκ.'}</div>
-            <div style="font-size:11px;color:var(--txt3)">όγκος</div>
-          </div>
-        </div>
-      </div>`;
+function openDB(){
+  return new Promise(function(res,rej){
+    if(!('indexedDB' in window))return rej(new Error('IndexedDB not supported'));
+    var q=indexedDB.open(DB_NAME,1);
+    q.onupgradeneeded=function(){var db=q.result;if(!db.objectStoreNames.contains(DB_STORE))db.createObjectStore(DB_STORE)};
+    q.onsuccess=function(){res(q.result)};
+    q.onerror=function(){rej(q.error||new Error('IndexedDB open failed'))};
   });
-
-  document.getElementById('home-content').innerHTML = `
-    <div class="next-workout">
-      <div class="nw-label">Επόμενη Προπόνηση</div>
-      <div class="nw-title">${sess.icon} ${sess.name}</div>
-      <div class="nw-sub"><span class="badge-week ${wi.badge}">${wi.label}</span></div>
-      <div class="nw-meta">
-        <div class="nw-chip">📋 ${exCount} ασκήσεις</div>
-        <div class="nw-chip">⏱ ~65'</div>
-        <div class="nw-chip">🏆 #${totalSess+1}</div>
-      </div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:14px">${wi.desc}</div>
-      ${progressHTML}
-      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px;margin-bottom:16px">Πρόοδος κύκλου (${cycleProgress}/12 προπονήσεις)</div>
-      <button class="btn-start" onclick="startWorkout()">Ξεκίνα Τώρα</button>
-    </div>
-    ${recent.length > 0 ? `
-      <div style="padding:4px 20px 8px"><div style="font-size:13px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:0.5px">Πρόσφατα</div></div>
-      ${recentHTML}` : ''}
-    <div style="height:10px"></div>`;
 }
-
-// ══════════════════════════════════════════════════════
-// WORKOUT
-// ══════════════════════════════════════════════════════
-let activeWorkout = null;
-
-function startWorkout() {
-  const w = STATE.cycleWeek;
-  const si = STATE.sessionIdx;
-  const sessionKey = SESSION_ORDER[si];
-  const sess = STATE.program[sessionKey];
-  const wk = getSetsKey(w);
-
-  activeWorkout = {
-    id: Date.now(),
-    date: new Date().toISOString(),
-    sessionKey, sessionName: sess.name,
-    cycleWeek: w,
-    exercises: sess.exercises
-      .filter(ex => ex[wk] && ex[wk] !== '—')
-      .map(ex => {
-        const sc = parseSetCount(ex[wk]);
-        return {
-          id: ex.id, name: ex.name,
-          prescription: ex[wk],
-          restSecs: ex[getRestKey(w)] || 120,
-          tip: ex.tip,
-          sets: Array.from({length:sc}, () => ({weight:'', reps:'', done:false})),
-          open: false
-        };
-      })
-  };
-
-  document.getElementById('wh-title').textContent = `${sess.icon} ${sess.name}`;
-  document.getElementById('wh-week').textContent = WEEK_INFO[w-1].label;
-  renderWorkoutBody();
-  showScreen('workout');
-  document.getElementById('nav-workout').classList.add('active');
+function idbGet(k){
+  return new Promise(function(res,rej){
+    var tx=DB.transaction(DB_STORE,'readonly'),st=tx.objectStore(DB_STORE),q=st.get(k);
+    q.onsuccess=function(){res(q.result)};q.onerror=function(){rej(q.error)};
+  });
 }
-
-function renderWorkoutBody() {
-  const done = activeWorkout.exercises.every(ex => ex.sets.every(s => s.done));
-  let html = '';
-  activeWorkout.exercises.forEach((ex, ei) => {
-    const allDone = ex.sets.every(s => s.done);
-    const best = getBestForExercise(ex.id);
-    let setsHTML = '';
-    ex.sets.forEach((set, si) => {
-      setsHTML += `
-        <div class="set-row">
-          <div class="set-num ${set.done?'done':''}">${si+1}</div>
-          <div class="set-inputs">
-            <div class="set-input-group">
-              <div class="set-input-label">kg</div>
-              <input class="set-input" type="number" inputmode="decimal" value="${set.weight}" placeholder="0"
-                onchange="setWeight(${ei},${si},this.value)" onfocus="this.select()">
-            </div>
-            <div class="set-input-group">
-              <div class="set-input-label">reps</div>
-              <input class="set-input" type="number" inputmode="numeric" value="${set.reps}" placeholder="0"
-                onchange="setReps(${ei},${si},this.value)" onfocus="this.select()">
-            </div>
-          </div>
-          <div class="set-check ${set.done?'done':''}" onclick="toggleSet(${ei},${si})">
-            ${set.done ? '✓' : ''}
-          </div>
-        </div>`;
+function idbSet(k,v){
+  return new Promise(function(res,rej){
+    var tx=DB.transaction(DB_STORE,'readwrite');
+    tx.objectStore(DB_STORE).put(v,k);
+    tx.oncomplete=function(){res()};tx.onerror=function(){rej(tx.error)};tx.onabort=function(){rej(tx.error)};
+  });
+}
+function loadST(){
+  return openDB().then(function(db){
+    DB=db;DB_READY=true;STORAGE_MODE='IndexedDB';
+    return idbGet(DB_KEY).then(function(d){
+      if(d)return normST(d);
+      var legacy=null;
+      try{legacy=localStorage.getItem('ppl5')}catch(e){}
+      if(legacy){
+        try{
+          var st=normST(JSON.parse(legacy));
+          return idbSet(DB_KEY,st).then(function(){
+            try{localStorage.removeItem('ppl5')}catch(e){}
+            return st;
+          });
+        }catch(e){}
+      }
+      return defState();
     });
-    html += `
-      <div class="ex-card">
-        <div class="ex-header" onclick="toggleExercise(${ei})">
-          <div>
-            <div class="ex-name">${ex.name}</div>
-            <div class="ex-presc">${ex.prescription}</div>
-          </div>
-          <div class="ex-status">
-            ${allDone ? '<span class="ex-done-badge">✓ Έγινε</span>' : ''}
-            <span class="ex-expand ${ex.open?'open':''}">⌄</span>
-          </div>
-        </div>
-        <div class="ex-body ${ex.open?'open':''}">
-          ${ex.tip ? `<div class="ex-tip">💡 ${ex.tip}</div>` : ''}
-          ${best ? `<div class="prev-best">📈 ${best}</div>` : ''}
-          ${setsHTML}
-        </div>
-      </div>`;
+  }).catch(function(e){
+    console.warn('IndexedDB unavailable, using localStorage fallback',e);
+    STORAGE_MODE='localStorage fallback';
+    try{var d=localStorage.getItem('ppl5');return d?normST(JSON.parse(d)):defState()}catch(e2){return defState()}
   });
+}
+function saveST(){
+  try{
+    var snap=JSON.parse(JSON.stringify(ST));
+    if(DB_READY&&DB){
+      SAVE_CHAIN=SAVE_CHAIN.then(function(){return idbSet(DB_KEY,snap)}).catch(function(e){
+        console.warn('IndexedDB save failed, using localStorage fallback',e);
+        STORAGE_MODE='localStorage fallback';
+        try{localStorage.setItem('ppl5',JSON.stringify(snap))}catch(e2){}
+      });
+    }else localStorage.setItem('ppl5',JSON.stringify(snap));
+  }catch(e){}
+}
+function requestPersistentStorage(){
+  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});
+}
+var ST=defState();
 
-  html += `<button class="btn-finish-workout" onclick="finishWorkout()" ${done?'':'style="background:var(--bg3);color:var(--txt3);"'}>
-    ${done ? '🎉 Ολοκλήρωσε Προπόνηση' : 'Ολοκλήρωσε (σημείωσε όλα τα sets)'}
-  </button><div style="height:20px"></div>`;
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+function sk(w){return 's'+w} function rk(w){return 'r'+w}
+function psc(s){if(!s||s==='—')return 0;var m=s.match(/^(\d+)/);return m?+m[1]:3}
+function fdate(iso){return new Date(iso).toLocaleDateString('el-GR',{weekday:'short',day:'numeric',month:'short'})}
+function calcVol(log){return log.ex.reduce(function(s,e){return s+e.sets.reduce(function(ss,st){return ss+(st.done?(+st.w||0)*(+st.r||0):0)},0)},0)}
+function bestFor(exId){for(var i=ST.logs.length-1;i>=0;i--){var e=ST.logs[i].ex.find(function(x){return x.id===exId});if(e){var d=e.sets.filter(function(s){return s.done&&+s.w>0});if(d.length){var b=d.reduce(function(a,c){return+c.w>+a.w?c:a},d[0]);return'📈 Καλύτερο: '+b.w+'kg×'+b.r}}}return null}
+function bdg(txt,col){return'<span class="bdg" style="background:'+col+'33;color:'+col+'">'+txt+'</span>'}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function applyFs(){document.documentElement.style.setProperty('--fs',FS[ST.fs]||'15px')}
 
-  document.getElementById('workout-body').innerHTML = html;
-  document.getElementById('workout-screen').classList.add('active');
-  document.querySelectorAll('.screen').forEach(s => { if(s.id !== 'workout-screen') s.classList.remove('active'); });
+// ═══════════════════════════════════════════
+// MODAL — global action registry
+// ═══════════════════════════════════════════
+var MA={};var MAC=0;
+function showModal(title,msg,btns){
+  var html='<div class="m-title">'+esc(title)+'</div>';
+  if(msg)html+='<div class="m-msg">'+esc(msg)+'</div>';
+  btns.forEach(function(b){
+    var k='ma'+(++MAC);MA[k]=b.fn;
+    var bg=b.pri?'var(--acc)':b.red?'rgba(255,69,58,.15)':'var(--bg3)';
+    var col=b.pri?'#fff':b.red?'var(--red)':'var(--txt)';
+    html+='<button class="m-btn" style="background:'+bg+';color:'+col+'" onclick="MA[\''+k+'\']();closeModal()">'+esc(b.l)+'</button>';
+  });
+  html+='<button class="m-btn" style="background:var(--bg3);color:var(--txt2)" onclick="closeModal()">Άκυρο</button>';
+  document.getElementById('modal-inner').innerHTML=html;
+  document.getElementById('modal').classList.add('on');
+}
+function closeModal(){document.getElementById('modal').classList.remove('on')}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+var toastT=null;
+function showToast(msg,col){
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=(col||'rgba(48,209,88,.92)');
+  t.classList.add('on');
+  if(toastT)clearTimeout(toastT);
+  toastT=setTimeout(function(){t.classList.remove('on')},2500);
 }
 
-function toggleExercise(ei) {
-  activeWorkout.exercises[ei].open = !activeWorkout.exercises[ei].open;
-  renderWorkoutBody();
-}
-function setWeight(ei, si, val) { activeWorkout.exercises[ei].sets[si].weight = parseFloat(val)||0; }
-function setReps(ei, si, val)   { activeWorkout.exercises[ei].sets[si].reps   = parseInt(val)||0; }
-
-function toggleSet(ei, si) {
-  const set = activeWorkout.exercises[ei].sets[si];
-  set.done = !set.done;
-  if (set.done) {
-    const ex = activeWorkout.exercises[ei];
-    const restSecs = ex.restSecs || 120;
-    // Find next set or exercise
-    let nextLabel = '';
-    const nextSet = ex.sets[si+1];
-    if (nextSet) nextLabel = `Επόμενο set: ${ex.name}`;
-    else {
-      const nextEx = activeWorkout.exercises[ei+1];
-      if (nextEx) nextLabel = `Επόμενη: ${nextEx.name}`;
-      else nextLabel = 'Τελευταίο set! 🎉';
-    }
-    startTimer(restSecs, nextLabel);
-  }
-  renderWorkoutBody();
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+var curScr='home';
+function goTo(s){
+  document.querySelectorAll('.scr').forEach(function(x){x.classList.remove('on')});
+  document.querySelectorAll('.nb').forEach(function(x){x.classList.remove('on')});
+  document.getElementById('scr-'+s).classList.add('on');
+  var nb=document.getElementById('nb-'+s);if(nb)nb.classList.add('on');
+  curScr=s;
+  if(s==='home')renderHome();
+  if(s==='history'){renderHistList();renderHistTabs()}
+  if(s==='program')renderProg();
+  if(s==='settings')renderSettings();
 }
 
-function finishWorkout() {
-  const allDone = activeWorkout.exercises.every(ex => ex.sets.every(s => s.done));
-  if (!allDone) {
-    showModal('Ολοκλήρωση;', 'Δεν έχεις σημειώσει όλα τα sets. Θες να αποθηκεύσεις ούτως ή άλλως;',
-      [{ label:'Αποθήκευση', action:'saveWorkout()', style:'primary' },
-       { label:'Άκυρο', action:'closeModal()', style:'' }]);
-    return;
-  }
-  saveWorkout();
-}
-
-function saveWorkout() {
-  closeModal();
-  STATE.logs.push({ ...activeWorkout, exercises: activeWorkout.exercises.map(e => ({...e, sets:[...e.sets]})) });
-  STATE.totalWorkouts++;
-  // Advance
-  STATE.sessionIdx++;
-  if (STATE.sessionIdx >= SESSION_ORDER.length) {
-    STATE.sessionIdx = 0;
-    STATE.cycleWeek++;
-    if (STATE.cycleWeek > 4) STATE.cycleWeek = 1;
-  }
-  saveState();
-  activeWorkout = null;
-  stopTimer();
-  showToast('Προπόνηση αποθηκεύτηκε! 🎉');
-  showScreen('home');
-}
-
-function closeWorkout() {
-  showModal('Κλείσιμο προπόνησης', 'Η πρόοδός σου θα χαθεί.',
-    [{ label:'Κλείσιμο χωρίς αποθήκευση', action:'discardWorkout()', style:'danger' },
-     { label:'Αποθήκευση & Κλείσιμο', action:'saveWorkout()', style:'primary' },
-     { label:'Συνέχεια', action:'closeModal()', style:'' }]);
-}
-function discardWorkout() {
-  closeModal();
-  activeWorkout = null;
-  stopTimer();
-  showScreen('home');
-}
-
-// ══════════════════════════════════════════════════════
-// TIMER
-// ══════════════════════════════════════════════════════
-let timerInterval = null;
-let timerTotal = 0;
-let timerLeft = 0;
-
-function startTimer(secs, nextLabel) {
-  stopTimer();
-  timerTotal = secs;
-  timerLeft = secs;
-  document.getElementById('timer-next').textContent = nextLabel;
-  document.getElementById('timer-overlay').classList.add('active');
-  updateTimerDisplay();
-  timerInterval = setInterval(() => {
-    timerLeft--;
-    if (timerLeft <= 0) { stopTimer(); return; }
-    updateTimerDisplay();
-  }, 1000);
-}
-
-function updateTimerDisplay() {
-  const m = Math.floor(timerLeft/60);
-  const s = timerLeft % 60;
-  document.getElementById('timer-display').textContent = `${m}:${s.toString().padStart(2,'0')}`;
-  const circ = 2 * Math.PI * 100;
-  const offset = circ * (timerLeft / timerTotal);
-  document.getElementById('timer-circle').style.strokeDashoffset = circ - offset;
-}
-
-function stopTimer() {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-  document.getElementById('timer-overlay').classList.remove('active');
-}
-function skipTimer() { stopTimer(); }
-function addTimerTime(secs) {
-  timerLeft += secs;
-  timerTotal += secs;
-  updateTimerDisplay();
-}
-
-// ══════════════════════════════════════════════════════
-// HISTORY
-// ══════════════════════════════════════════════════════
-function renderHistory() {
-  const logs = [...STATE.logs].reverse();
-  document.getElementById('hist-sub').textContent = `${logs.length} προπονήσεις συνολικά`;
-  if (!logs.length) {
-    document.getElementById('history-list').innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">📋</div>
-        <div class="empty-txt">Καμία καταγραφή ακόμα</div>
-        <div class="empty-sub">Ξεκίνα την πρώτη σου προπόνηση!</div>
-      </div>`;
-    return;
-  }
-  let html = '';
-  logs.forEach(log => {
-    const totalSets = log.exercises.reduce((s,e) => s + e.sets.filter(st=>st.done).length, 0);
-    const totalVol  = log.exercises.reduce((s,e) => s + e.sets.reduce((ss,st) => ss+(st.weight*st.reps||0),0), 0);
-    const wi = WEEK_INFO[log.cycleWeek-1];
-    let detailHTML = log.exercises.map(ex => {
-      const doneSets = ex.sets.filter(s=>s.done);
-      if (!doneSets.length) return '';
-      const best = doneSets.reduce((b,s) => s.weight>b.weight?s:b, doneSets[0]);
-      return `<div class="hist-ex-row"><b>${ex.name}</b>: ${doneSets.length} sets${best.weight>0?' · best '+best.weight+'kg×'+best.reps:''}</div>`;
+// ═══════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════
+function renderHome(){
+  var w=ST.cw,idx=ST.si,sk2=SO[idx],sess=ST.prog[sk2],wi=WK[w-1];
+  var exC=sess.exercises.filter(function(e){return e[sk(w)]&&e[sk(w)]!=='—'}).length;
+  var pos=idx+(w-1)*3;
+  var segs='';for(var i=0;i<12;i++)segs+='<div class="prog-seg" style="background:'+(i<pos?'var(--grn)':i===pos?'var(--acc)':'var(--bg3)')+'"></div>';
+  var recent=[].concat(ST.logs).reverse().slice(0,3);
+  var rec=recent.map(function(log){
+    var v=calcVol(log),wi2=WK[log.cw-1];
+    var det=log.ex.map(function(e){
+      var done=e.sets.filter(function(s){return s.done});if(!done.length)return'';
+      var bw=done.filter(function(s){return+s.w>0});
+      var b=bw.length?bw.reduce(function(a,c){return+c.w>+a.w?c:a},bw[0]):null;
+      return'<div style="font-size:.85em;color:var(--txt2);padding:2px 0"><b>'+esc(e.name)+'</b>: '+done.length+' sets'+(b?' · best '+b.w+'kg×'+b.r:'')+'</div>';
     }).join('');
-    html += `
-      <div class="hist-item">
-        <div class="hist-header" onclick="toggleHistItem('h${log.id}')">
-          <div>
-            <div class="hist-date">${formatDate(log.date)} — ${log.sessionName}</div>
-            <div class="hist-name"><span class="badge-week ${wi.badge}" style="font-size:11px">${wi.label}</span></div>
-          </div>
-          <div class="hist-stats">
-            <div class="hist-stat">
-              <div class="hist-stat-val">${totalSets}</div>
-              <div class="hist-stat-label">sets</div>
-            </div>
-            ${totalVol>0?`<div class="hist-stat"><div class="hist-stat-val">${(totalVol/1000).toFixed(1)}t</div><div class="hist-stat-label">όγκος</div></div>`:''}
-          </div>
-        </div>
-        <div class="hist-detail" id="h${log.id}">${detailHTML}</div>
-      </div>`;
+    return'<div class="card"><div style="display:flex;align-items:center;padding:13px 16px;cursor:pointer" onclick="this.nextElementSibling.classList.toggle(\'open\')">'+
+      '<div style="flex:1"><div style="font-weight:700">'+esc(log.sn)+' — '+fdate(log.date)+'</div><div style="margin-top:3px">'+bdg(wi2.l,wi2.c)+'</div></div>'+
+      '<div style="text-align:right"><div style="font-weight:700;color:var(--acc)">'+(v>0?(v/1000).toFixed(1)+'t':log.ex.length+' ασκ.')+'</div><div style="font-size:.78em;color:var(--txt3)">όγκος</div></div>'+
+    '</div><div class="hist-det">'+det+'</div></div>';
+  }).join('');
+  document.getElementById('scr-home').innerHTML=
+    '<div class="ph"><div class="pt">Γεια 👋</div><div class="ps">'+new Date().toLocaleDateString('el-GR',{weekday:'long',day:'numeric',month:'long'})+'</div></div>'+
+    '<div style="margin:0 14px 14px;background:linear-gradient(135deg,#1a3a5c,#0d2137);border-radius:20px;padding:20px">'+
+      '<div style="font-size:.72em;font-weight:700;color:var(--tel);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Επόμενη Προπόνηση</div>'+
+      '<div style="font-size:1.6em;font-weight:700;margin-bottom:6px">'+sess.icon+' '+sess.name+'</div>'+
+      '<div style="margin-bottom:12px">'+bdg(wi.l,wi.c)+'</div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'+
+        '<span style="background:rgba(255,255,255,.12);border-radius:20px;padding:3px 10px;font-size:.8em;font-weight:600">📋 '+exC+' ασκήσεις</span>'+
+        '<span style="background:rgba(255,255,255,.12);border-radius:20px;padding:3px 10px;font-size:.8em;font-weight:600">🏆 #'+(ST.total+1)+'</span>'+
+        '<span style="background:rgba(255,255,255,.12);border-radius:20px;padding:3px 10px;font-size:.8em;font-weight:600">⏱ ~65\'</span>'+
+      '</div>'+
+      '<div class="prog-ring">'+segs+'</div>'+
+      '<div style="font-size:.72em;color:rgba(255,255,255,.4);margin-top:3px;margin-bottom:16px">Κύκλος '+pos+'/12</div>'+
+      '<button class="btn btn-pri btn-full" onclick="startWorkout()">Ξεκίνα Τώρα</button>'+
+    '</div>'+
+    (recent.length?'<div style="padding:4px 18px 8px;font-size:.72em;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px">Πρόσφατα</div>'+rec:'')+
+    '<div style="height:10px"></div>';
+}
+
+// ═══════════════════════════════════════════
+// WORKOUT  — DOM patch, no full re-render
+// ═══════════════════════════════════════════
+function startWorkout(){
+  if(ST.active){activateWorkoutScr();return}
+  var w=ST.cw,idx=ST.si,sk2=SO[idx],sess=ST.prog[sk2];
+  ST.active={id:Date.now(),date:new Date().toISOString(),sk:sk2,sn:sess.name,cw:w,
+    ex:sess.exercises.filter(function(e){return e[sk(w)]&&e[sk(w)]!=='—'}).map(function(e){
+      return{id:e.id,name:e.name,presc:e[sk(w)],rest:e[rk(w)]||120,tip:e.tip||'',
+        sets:Array.from({length:psc(e[sk(w)])},function(){return{w:'',r:'',done:false}})};
+    })};
+  saveST();
+  buildWorkoutDOM();
+  activateWorkoutScr();
+}
+
+function activateWorkoutScr(){
+  var aw=ST.active,wi=WK[aw.cw-1];
+  document.getElementById('wh-name').textContent=aw.sn;
+  document.getElementById('wh-week').textContent=wi.l;
+  document.querySelectorAll('.scr').forEach(function(x){x.classList.remove('on')});
+  document.querySelectorAll('.nb').forEach(function(x){x.classList.remove('on')});
+  document.getElementById('scr-workout').classList.add('on');
+  document.getElementById('nb-workout').classList.add('on');
+  curScr='workout';
+}
+
+// Build workout DOM once — never rebuild on set toggle
+function buildWorkoutDOM(){
+  var aw=ST.active;
+  var html=aw.ex.map(function(ex,ei){
+    var bst=bestFor(ex.id);
+    var sets=ex.sets.map(function(s,si){
+      return'<div class="set-row">'+
+        '<div class="sn'+(s.done?' done':'')+'" id="sn-'+ei+'-'+si+'">'+(si+1)+'</div>'+
+        '<div class="set-inputs">'+
+          '<div class="set-ig"><div class="set-lbl">kg</div>'+
+            '<input class="set-inp" type="number" inputmode="decimal" value="'+esc(s.w)+'" placeholder="0" oninput="inputW('+ei+','+si+',this.value)"></div>'+
+          '<div class="set-ig"><div class="set-lbl">reps</div>'+
+            '<input class="set-inp" type="number" inputmode="numeric" value="'+esc(s.r)+'" placeholder="0" oninput="inputR('+ei+','+si+',this.value)"></div>'+
+        '</div>'+
+        '<div class="sc'+(s.done?' done':'')+'" id="sc-'+ei+'-'+si+'" onclick="toggleSet('+ei+','+si+')">'+(s.done?'✓':'')+'</div>'+
+      '</div>';
+    }).join('');
+    return'<div class="exc" id="exc-'+ei+'">'+
+      '<div class="exc-hdr" onclick="toggleExHdr('+ei+')">'+
+        '<div>'+
+          '<div style="font-weight:700" id="ex-title-'+ei+'">'+esc(ex.name)+'</div>'+
+          '<div style="color:var(--txt3);font-size:.82em;margin-top:2px">'+esc(ex.presc)+'</div>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:6px">'+
+          '<span id="ex-badge-'+ei+'" style="display:none;background:rgba(48,209,88,.2);color:var(--grn);border-radius:20px;padding:1px 8px;font-size:.75em;font-weight:700">✓ Έγινε</span>'+
+          '<span class="exc-chevron" id="chev-'+ei+'">⌄</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="exc-body" id="exc-body-'+ei+'">'+
+        (ex.tip?'<div class="ex-tip">💡 '+esc(ex.tip)+'</div>':'')+
+        (bst?'<div class="prev-best">'+esc(bst)+'</div>':'')+
+        sets+
+      '</div>'+
+    '</div>';
+  }).join('');
+  html+='<div style="padding:10px 14px 4px"><button class="btn btn-full" id="finish-btn" onclick="finishWorkout()"></button></div><div style="height:20px"></div>';
+  document.getElementById('workout-body').innerHTML=html;
+  updateFinishBtn();
+  // Open first exercise by default
+  var body0=document.getElementById('exc-body-0');
+  var chev0=document.getElementById('chev-0');
+  if(body0){body0.classList.add('open');if(chev0)chev0.style.transform='rotate(180deg)'}
+}
+
+function toggleExHdr(ei){
+  var body=document.getElementById('exc-body-'+ei);
+  var chev=document.getElementById('chev-'+ei);
+  if(!body)return;
+  var open=body.classList.toggle('open');
+  if(chev)chev.style.transform=open?'rotate(180deg)':'rotate(0deg)';
+}
+
+// Patch only changed DOM nodes — no collapse
+function toggleSet(ei,si){
+  if(!ST.active)return;
+  var s=ST.active.ex[ei].sets[si];
+  s.done=!s.done;
+  saveST(); // auto-save every toggle
+
+  // Patch set-num circle
+  var snEl=document.getElementById('sn-'+ei+'-'+si);
+  if(snEl){snEl.className='sn'+(s.done?' done':'');}
+
+  // Patch checkmark button
+  var scEl=document.getElementById('sc-'+ei+'-'+si);
+  if(scEl){scEl.className='sc'+(s.done?' done':'');scEl.textContent=s.done?'✓':'';}
+
+  // Patch exercise done badge
+  var ex=ST.active.ex[ei];
+  var exDone=ex.sets.every(function(s2){return s2.done});
+  var excEl=document.getElementById('exc-'+ei);
+  if(excEl){excEl.className='exc'+(exDone?' done-all':'');}
+  var badgeEl=document.getElementById('ex-badge-'+ei);
+  if(badgeEl)badgeEl.style.display=exDone?'':'none';
+
+  // Patch finish button
+  updateFinishBtn();
+
+  // Start rest timer
+  if(s.done){
+    var nxt=ex.sets[si+1],nxte=ST.active.ex[ei+1];
+    var lbl=nxt?'Επόμενο set: '+ex.name:nxte?'Επόμενη: '+nxte.name:'Τελευταίο set! 🎉';
+    startTimer(ex.rest||120,lbl);
+  }
+}
+
+function updateFinishBtn(){
+  var btn=document.getElementById('finish-btn');if(!btn||!ST.active)return;
+  var allDone=ST.active.ex.every(function(e){return e.sets.every(function(s){return s.done})});
+  btn.className='btn btn-full '+(allDone?'btn-grn':'btn-ghost');
+  btn.style.color=allDone?'#fff':'var(--txt3)';
+  btn.textContent=allDone?'🎉 Ολοκλήρωσε Προπόνηση':'Ολοκλήρωσε (σημείωσε όλα τα sets)';
+}
+
+function inputW(ei,si,v){if(!ST.active)return;ST.active.ex[ei].sets[si].w=v;saveST()}
+function inputR(ei,si,v){if(!ST.active)return;ST.active.ex[ei].sets[si].r=v;saveST()}
+
+function doSaveWorkout(){
+  ST.logs.push(JSON.parse(JSON.stringify(ST.active)));
+  ST.total++;
+  var ns=ST.si+1,nw=ST.cw;
+  if(ns>=SO.length){ns=0;nw=nw>=4?1:nw+1}
+  ST.si=ns;ST.cw=nw;ST.active=null;
+  saveST();stopTimer();goTo('home');showToast('Αποθηκεύτηκε! 🎉');
+}
+function finishWorkout(){
+  if(!ST.active)return;
+  var allDone=ST.active.ex.every(function(e){return e.sets.every(function(s){return s.done})});
+  if(!allDone){showModal('Ολοκλήρωση;','Δεν έχουν σημειωθεί όλα τα sets.',[{l:'Αποθήκευση ούτως ή άλλως',pri:true,fn:doSaveWorkout}]);}
+  else{doSaveWorkout()}
+}
+function closeWorkout(){
+  showModal('Κλείσιμο;','Τα sets που έχεις σημειώσει είναι ήδη αποθηκευμένα αυτόματα.',[
+    {l:'Κλείσιμο',fn:function(){stopTimer();goTo('home')}},
+    {l:'Αποθήκευση & Κλείσιμο',pri:true,fn:doSaveWorkout}
+  ]);
+}
+
+// ═══════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════
+var tmrIv=null,tmrTotal=120,tmrLeft=0;
+function startTimer(secs,lbl){
+  stopTimer();tmrTotal=secs;tmrLeft=secs;
+  document.getElementById('tmr-next').textContent=lbl;
+  document.getElementById('timer').classList.add('on');
+  updTimer();
+  tmrIv=setInterval(function(){if(--tmrLeft<=0){stopTimer();return}updTimer()},1000);
+}
+function updTimer(){
+  var m=Math.floor(tmrLeft/60),s=tmrLeft%60;
+  document.getElementById('tmr-disp').textContent=m+':'+(s<10?'0':'')+s;
+  document.getElementById('tmr-ring').style.strokeDashoffset=628.3-(628.3*tmrLeft/tmrTotal);
+}
+function stopTimer(){if(tmrIv){clearInterval(tmrIv);tmrIv=null}document.getElementById('timer').classList.remove('on')}
+function timerSkip(){stopTimer()}
+function timerAdd(s){tmrLeft+=s;tmrTotal+=s;updTimer()}
+
+// ═══════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════
+var histTab='list';
+function renderHistTabs(){
+  ['list','cal'].forEach(function(t){
+    var btn=document.getElementById('htab-'+t);
+    var on=histTab===t;
+    btn.style.background=on?'var(--acc)':'rgba(10,132,255,.12)';
+    btn.style.color=on?'#fff':'var(--acc)';
   });
-  document.getElementById('history-list').innerHTML = html + '<div style="height:10px"></div>';
+  document.getElementById('hist-list').style.display=histTab==='list'?'block':'none';
+  document.getElementById('hist-cal').style.display=histTab==='cal'?'block':'none';
 }
-
-function toggleHistItem(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.toggle('open');
+function setHistTab(t){histTab=t;renderHistTabs();if(t==='cal')renderCal();else renderHistList()}
+function renderHistList(){
+  document.getElementById('hist-count').textContent=ST.logs.length+' προπονήσεις';
+  var logs=[].concat(ST.logs).reverse();
+  if(!logs.length){
+    document.getElementById('hist-list').innerHTML='<div class="empty"><div style="font-size:3em;margin-bottom:12px">📋</div><div style="font-size:1.1em;font-weight:600;color:var(--txt2);margin-bottom:6px">Καμία καταγραφή ακόμα</div><div>Ξεκίνα την πρώτη σου προπόνηση!</div></div>';
+    return;
+  }
+  document.getElementById('hist-list').innerHTML=logs.map(function(log,idx){
+    var v=calcVol(log),wi=WK[log.cw-1],sets=log.ex.reduce(function(s,e){return s+e.sets.filter(function(st){return st.done}).length},0);
+    var det=log.ex.map(function(e){
+      var done=e.sets.filter(function(s){return s.done});if(!done.length)return'';
+      var bw=done.filter(function(s){return+s.w>0});
+      var b=bw.length?bw.reduce(function(a,c){return+c.w>+a.w?c:a},bw[0]):null;
+      return'<div style="font-size:.85em;color:var(--txt2);padding:2px 0"><b>'+esc(e.name)+'</b>: '+done.map(function(s){return(s.w||'?')+'kg×'+(s.r||'?')}).join(', ')+'</div>';
+    }).join('');
+    return'<div class="hist-item">'+
+      '<div style="padding:14px 16px;cursor:pointer" onclick="document.getElementById(\'hd'+idx+'\').classList.toggle(\'open\')">'+
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+
+          '<div><div style="font-weight:700">'+esc(log.sn)+' — '+fdate(log.date)+'</div><div style="margin-top:4px">'+bdg(wi.l,wi.c)+'</div></div>'+
+          '<div style="text-align:right;flex-shrink:0;margin-left:12px"><div style="font-weight:700;color:var(--acc)">'+(v>0?(v/1000).toFixed(1)+'t':'')+'</div><div style="font-size:.78em;color:var(--txt3)">'+sets+' sets</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="hist-det" id="hd'+idx+'">'+det+'</div>'+
+    '</div>';
+  }).join('')+'<div style="height:10px"></div>';
 }
+var calY=new Date().getFullYear(),calM=new Date().getMonth(),calSel=null;
+function renderCal(){
+  var MNS=['Ιαν','Φεβ','Μαρ','Απρ','Μαΐ','Ιουν','Ιουλ','Αυγ','Σεπ','Οκτ','Νοε','Δεκ'];
+  var DNS=['Κ','Δ','Τ','Τ','Π','Π','Σ'];
+  var fd=new Date(calY,calM,1).getDay(),dim=new Date(calY,calM+1,0).getDate();
+  var wd={};
+  ST.logs.forEach(function(log){var d=new Date(log.date),k=d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();if(!wd[k])wd[k]=[];wd[k].push(log)});
+  var start=(fd+6)%7,grid='',today=new Date();
+  for(var i=0;i<start;i++)grid+='<div></div>';
+  for(var d=1;d<=dim;d++){
+    var k=calY+'-'+calM+'-'+d,logs=wd[k]||[];
+    var isToday=today.getFullYear()===calY&&today.getMonth()===calM&&today.getDate()===d;
+    var isSel=calSel===k;
+    grid+='<div class="cal-day" style="background:'+(logs.length?(isSel?'var(--acc)':'rgba(48,209,88,.15)'):(isToday?'rgba(10,132,255,.15)':'transparent'))+';border:'+(isSel?'1px solid var(--acc)':isToday?'1px solid rgba(10,132,255,.5)':'1px solid transparent')+';cursor:'+(logs.length?'pointer':'default')+'"'+(logs.length?' onclick="calClick(\''+k+'\')"':'')+'>'+
+      '<div style="font-size:.9em;font-weight:'+(isToday||logs.length?700:400)+';color:'+(isSel?'#fff':isToday?'var(--acc)':'var(--txt)')+'">'+d+'</div>'+
+      (logs.length?'<div class="cal-dot" style="background:'+(isSel?'#fff':'var(--grn)')+'"></div>':'')+
+    '</div>';
+  }
+  var detail='';
+  if(calSel&&wd[calSel]){
+    var dp=calSel.split('-');
+    detail='<div style="padding:14px 14px 0"><div style="font-weight:700;margin-bottom:8px">'+new Date(+dp[0],+dp[1],+dp[2]).toLocaleDateString('el-GR',{weekday:'long',day:'numeric',month:'long'})+'</div>'+
+      wd[calSel].map(function(log){
+        return'<div style="background:var(--bg2);border-radius:12px;padding:12px 14px;margin-bottom:8px">'+
+          '<div style="font-weight:700;margin-bottom:6px">'+esc(log.sn)+' '+bdg(WK[log.cw-1].l,WK[log.cw-1].c)+'</div>'+
+          log.ex.map(function(e){var done=e.sets.filter(function(s){return s.done});if(!done.length)return'';return'<div style="font-size:.85em;color:var(--txt2);padding:2px 0">'+esc(e.name)+': '+done.map(function(s){return(s.w||'?')+'kg×'+(s.r||'?')}).join(', ')+'</div>'}).join('')+
+        '</div>';
+      }).join('')+'</div>';
+  }
+  document.getElementById('hist-cal').innerHTML=
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:0 14px 12px">'+
+    '<button class="btn btn-ghost" style="padding:8px 14px" onclick="calNav(-1)">‹</button>'+
+    '<div style="font-weight:700;font-size:1.1em">'+MNS[calM]+' '+calY+'</div>'+
+    '<button class="btn btn-ghost" style="padding:8px 14px" onclick="calNav(1)">›</button></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 14px;margin-bottom:6px">'+DNS.map(function(d){return'<div style="text-align:center;font-size:.75em;color:var(--txt3);font-weight:600;padding:4px 0">'+d+'</div>'}).join('')+'</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 14px">'+grid+'</div>'+
+    detail+'<div style="height:10px"></div>';
+}
+function calClick(k){calSel=calSel===k?null:k;renderCal()}
+function calNav(d){calM+=d;if(calM>11){calM=0;calY++}else if(calM<0){calM=11;calY--}calSel=null;renderCal()}
 
-// ══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // PROGRAM EDITOR
-// ══════════════════════════════════════════════════════
-let currentProgTab = 'push';
-
-function showProgTab(tab) {
-  currentProgTab = tab;
-  ['push','pull','legs'].forEach(t => {
-    const btn = document.getElementById('ptab-'+t);
-    const sess = STATE.program[t];
-    if (t === tab) {
-      btn.style.background = sess.color + '33';
-      btn.style.color = sess.color;
-    } else {
-      btn.style.background = 'var(--bg3)';
-      btn.style.color = 'var(--txt3)';
-    }
+// ═══════════════════════════════════════════
+var progTab='push';
+function setProgTab(t){
+  progTab=t;
+  SO.forEach(function(s){
+    var btn=document.getElementById('ptab-'+s),sess=ST.prog[s];
+    btn.style.background=s===t?sess.color+'33':'var(--bg3)';
+    btn.style.color=s===t?sess.color:'var(--txt3)';
   });
-  renderProgram();
+  renderProg();
+}
+function renderProg(){
+  var sess=ST.prog[progTab];
+  var html=sess.exercises.map(function(ex,i){
+    var first=i===0,last=i===sess.exercises.length-1;
+    return'<div class="prog-ex">'+
+      '<div style="display:flex;align-items:center;padding:12px 12px;gap:10px">'+
+        '<div style="display:flex;flex-direction:column;gap:2px">'+
+          '<button class="re-btn" '+(first?'disabled':'')+' onclick="reorder(\''+progTab+'\','+i+','+(i-1)+')">▲</button>'+
+          '<button class="re-btn" '+(last?'disabled':'')+' onclick="reorder(\''+progTab+'\','+i+','+(i+1)+')">▼</button>'+
+        '</div>'+
+        '<div style="flex:1;cursor:pointer" onclick="togglePEx('+i+')">'+
+          '<div style="font-weight:700">'+esc(ex.name)+'</div>'+
+          '<div style="font-size:.78em;color:var(--txt3);margin-top:2px">'+esc(ex.s1)+' | '+esc(ex.s2)+' | '+esc(ex.s3)+' | '+esc(ex.s4)+'</div>'+
+        '</div>'+
+        '<button onclick="togglePEx('+i+')" style="background:none;border:none;color:var(--txt3);font-size:1.3em;cursor:pointer;padding:0 4px">›</button>'+
+      '</div>'+
+      '<div class="prog-ex-edit" id="pex-'+i+'">'+
+        '<div style="margin-bottom:10px"><div class="edit-lbl">Όνομα</div><input class="edit-inp" id="en-'+i+'" value="'+esc(ex.name)+'"></div>'+
+        [['1','Εβδ.1 (Δύναμη)'],['2','Εβδ.2 (Υπερτρ.)'],['3','Εβδ.3 (Δύν.+)'],['4','Εβδ.4 (Αποφ.)']].map(function(p){
+          return'<div class="edit-row"><div class="ef"><div class="edit-lbl">Sets '+p[1]+'</div><input class="edit-inp" id="ew'+p[0]+'-'+i+'" value="'+esc(ex['s'+p[0]])+'"></div><div class="ef"><div class="edit-lbl">Ανάπ.(δ.)</div><input class="edit-inp" type="number" id="er'+p[0]+'-'+i+'" value="'+esc(ex['r'+p[0]])+'"></div></div>';
+        }).join('')+
+        '<div style="margin-bottom:12px"><div class="edit-lbl">Tip</div><textarea class="edit-inp edit-ta" id="et-'+i+'">'+esc(ex.tip||'')+'</textarea></div>'+
+        '<div style="display:flex;gap:10px">'+
+          '<button class="btn btn-pri" onclick="saveEx('+i+')">Αποθήκευση</button>'+
+          '<button class="btn btn-red" onclick="delEx('+i+')">Διαγραφή</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  html+='<button onclick="addEx(\''+progTab+'\')" style="width:calc(100% - 28px);margin:0 14px 12px;background:rgba(10,132,255,.1);color:var(--acc);border:2px dashed rgba(10,132,255,.3);border-radius:12px;padding:13px;font-size:inherit;font-weight:700;cursor:pointer;font-family:inherit">+ Νέα Άσκηση</button><div style="height:10px"></div>';
+  document.getElementById('prog-body').innerHTML=html;
+}
+function togglePEx(i){document.getElementById('pex-'+i).classList.toggle('open')}
+function saveEx(i){
+  var ex=ST.prog[progTab].exercises[i];
+  ex.name=document.getElementById('en-'+i).value;
+  ['1','2','3','4'].forEach(function(w){ex['s'+w]=document.getElementById('ew'+w+'-'+i).value;ex['r'+w]=+document.getElementById('er'+w+'-'+i).value||90});
+  ex.tip=document.getElementById('et-'+i).value;
+  saveST();showToast('Αποθηκεύτηκε ✓');renderProg();
+}
+function delEx(i){
+  showModal('Διαγραφή;','"'+ST.prog[progTab].exercises[i].name+'"',[
+    {l:'Διαγραφή',red:true,fn:function(){ST.prog[progTab].exercises.splice(i,1);saveST();renderProg()}}
+  ]);
+}
+function addEx(tab){
+  ST.prog[tab].exercises.push({id:'x'+Date.now(),name:'Νέα Άσκηση',s1:'3×5',s2:'3×10',s3:'3×6',s4:'2×8',r1:120,r2:90,r3:120,r4:60,tip:''});
+  saveST();renderProg();
+  var last=ST.prog[tab].exercises.length-1;
+  setTimeout(function(){var el=document.getElementById('pex-'+last);if(el){el.classList.add('open');el.scrollIntoView({behavior:'smooth'})}},80);
+}
+function reorder(tab,from,to){
+  if(to<0||to>=ST.prog[tab].exercises.length)return;
+  var ex=ST.prog[tab].exercises,item=ex.splice(from,1)[0];ex.splice(to,0,item);
+  saveST();renderProg();
 }
 
-function renderProgram() {
-  const tab = currentProgTab;
-  const sess = STATE.program[tab];
-  let html = '';
-  sess.exercises.forEach((ex, i) => {
-    html += `
-      <div class="prog-ex-item">
-        <div class="prog-ex-main" onclick="toggleProgEx(${i})">
-          <div class="prog-ex-icon" style="background:${sess.color}22">${sess.icon}</div>
-          <div class="prog-ex-info">
-            <div class="prog-ex-name">${ex.name}</div>
-            <div class="prog-ex-desc">${ex.sets_w1} | ${ex.sets_w2} | ${ex.sets_w3} | ${ex.sets_w4}</div>
-          </div>
-          <div class="prog-ex-arrow">›</div>
-        </div>
-        <div class="prog-ex-edit" id="pex-${tab}-${i}">
-          <div class="edit-field">
-            <div class="edit-label">Όνομα Άσκησης</div>
-            <input class="edit-input" id="en-${tab}-${i}" value="${ex.name}">
-          </div>
-          <div class="edit-row">
-            <div class="edit-field">
-              <div class="edit-label">Sets Εβδ.1 (Δύναμη)</div>
-              <input class="edit-input" id="ew1-${tab}-${i}" value="${ex.sets_w1}">
-            </div>
-            <div class="edit-field">
-              <div class="edit-label">Ανάπαυση (δευτ.)</div>
-              <input class="edit-input" type="number" id="er1-${tab}-${i}" value="${ex.rest_w1}">
-            </div>
-          </div>
-          <div class="edit-row">
-            <div class="edit-field">
-              <div class="edit-label">Sets Εβδ.2 (Υπερτρ.)</div>
-              <input class="edit-input" id="ew2-${tab}-${i}" value="${ex.sets_w2}">
-            </div>
-            <div class="edit-field">
-              <div class="edit-label">Ανάπαυση (δευτ.)</div>
-              <input class="edit-input" type="number" id="er2-${tab}-${i}" value="${ex.rest_w2}">
-            </div>
-          </div>
-          <div class="edit-row">
-            <div class="edit-field">
-              <div class="edit-label">Sets Εβδ.3 (Δύναμη+)</div>
-              <input class="edit-input" id="ew3-${tab}-${i}" value="${ex.sets_w3}">
-            </div>
-            <div class="edit-field">
-              <div class="edit-label">Ανάπαυση (δευτ.)</div>
-              <input class="edit-input" type="number" id="er3-${tab}-${i}" value="${ex.rest_w3}">
-            </div>
-          </div>
-          <div class="edit-row">
-            <div class="edit-field">
-              <div class="edit-label">Sets Εβδ.4 (Αποφόρτ.)</div>
-              <input class="edit-input" id="ew4-${tab}-${i}" value="${ex.sets_w4}">
-            </div>
-            <div class="edit-field">
-              <div class="edit-label">Ανάπαυση (δευτ.)</div>
-              <input class="edit-input" type="number" id="er4-${tab}-${i}" value="${ex.rest_w4}">
-            </div>
-          </div>
-          <div class="edit-field">
-            <div class="edit-label">Tip / Οδηγίες</div>
-            <textarea class="edit-textarea" id="et-${tab}-${i}">${ex.tip||''}</textarea>
-          </div>
-          <div style="display:flex;gap:10px">
-            <button class="btn-save" onclick="saveExercise('${tab}',${i})">Αποθήκευση</button>
-            <button class="btn-del" onclick="deleteExercise('${tab}',${i})">Διαγραφή</button>
-          </div>
-        </div>
-      </div>`;
-  });
-  html += `<button class="btn-add-ex" onclick="addExercise('${tab}')">+ Νέα Άσκηση</button>`;
-  html += '<div style="height:10px"></div>';
-  document.getElementById('program-body').innerHTML = html;
-}
-
-function toggleProgEx(i) {
-  const el = document.getElementById(`pex-${currentProgTab}-${i}`);
-  if (el) el.classList.toggle('open');
-}
-
-function saveExercise(tab, i) {
-  const ex = STATE.program[tab].exercises[i];
-  ex.name     = document.getElementById(`en-${tab}-${i}`).value;
-  ex.sets_w1  = document.getElementById(`ew1-${tab}-${i}`).value;
-  ex.sets_w2  = document.getElementById(`ew2-${tab}-${i}`).value;
-  ex.sets_w3  = document.getElementById(`ew3-${tab}-${i}`).value;
-  ex.sets_w4  = document.getElementById(`ew4-${tab}-${i}`).value;
-  ex.rest_w1  = parseInt(document.getElementById(`er1-${tab}-${i}`).value)||120;
-  ex.rest_w2  = parseInt(document.getElementById(`er2-${tab}-${i}`).value)||90;
-  ex.rest_w3  = parseInt(document.getElementById(`er3-${tab}-${i}`).value)||120;
-  ex.rest_w4  = parseInt(document.getElementById(`er4-${tab}-${i}`).value)||60;
-  ex.tip      = document.getElementById(`et-${tab}-${i}`).value;
-  saveState();
-  showToast('Αποθηκεύτηκε ✓');
-  renderProgram();
-}
-
-function deleteExercise(tab, i) {
-  showModal('Διαγραφή άσκησης', `Θες να διαγράψεις "${STATE.program[tab].exercises[i].name}";`,
-    [{ label:'Διαγραφή', action:`confirmDelete('${tab}',${i})`, style:'danger' },
-     { label:'Άκυρο', action:'closeModal()', style:'' }]);
-}
-function confirmDelete(tab, i) {
-  STATE.program[tab].exercises.splice(i, 1);
-  saveState(); closeModal(); renderProgram();
-  showToast('Διαγράφτηκε');
-}
-
-function addExercise(tab) {
-  const newEx = {
-    id: 'ex_' + Date.now(),
-    name: 'Νέα Άσκηση',
-    sets_w1:'3×5', sets_w2:'3×10', sets_w3:'3×6', sets_w4:'2×8',
-    rest_w1:120, rest_w2:90, rest_w3:120, rest_w4:60,
-    tip:''
-  };
-  STATE.program[tab].exercises.push(newEx);
-  saveState();
-  renderProgram();
-  const last = STATE.program[tab].exercises.length - 1;
-  setTimeout(() => {
-    const el = document.getElementById(`pex-${tab}-${last}`);
-    if (el) { el.classList.add('open'); el.scrollIntoView({behavior:'smooth'}); }
-  }, 100);
-}
-
-// ══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // SETTINGS
-// ══════════════════════════════════════════════════════
-function renderSettings() {
-  const w = STATE.cycleWeek;
-  const si = STATE.sessionIdx;
-  document.getElementById('settings-body').innerHTML = `
-    <div class="settings-section">
-      <div class="settings-title">Τρέχουσα θέση στον κύκλο</div>
-      <div class="settings-card">
-        <div class="settings-row">
-          <div class="settings-row-label">Εβδομάδα κύκλου</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <button onclick="adjustWeek(-1)" style="background:var(--bg3);border:none;color:var(--acc);font-size:20px;width:32px;height:32px;border-radius:50%;cursor:pointer">−</button>
-            <span style="font-size:16px;font-weight:700;min-width:20px;text-align:center">${w}</span>
-            <button onclick="adjustWeek(1)" style="background:var(--bg3);border:none;color:var(--acc);font-size:20px;width:32px;height:32px;border-radius:50%;cursor:pointer">+</button>
-          </div>
-        </div>
-        <div class="settings-row">
-          <div class="settings-row-label">Session</div>
-          <div style="display:flex;gap:6px">
-            ${SESSION_ORDER.map((s,i) => `<button onclick="setSessionIdx(${i})" style="padding:5px 10px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:700;background:${i===si?'var(--acc)':'var(--bg3)'};color:${i===si?'#fff':'var(--txt3)'}">${STATE.program[s].name}</button>`).join('')}
-          </div>
-        </div>
-        <div class="settings-row" style="padding:10px 16px">
-          <div style="font-size:13px;color:var(--txt3)">Προπονήσεις συνολικά: <b style="color:var(--acc)">${STATE.totalWorkouts}</b></div>
-        </div>
-      </div>
-    </div>
-    <div class="settings-section">
-      <div class="settings-title">Δεδομένα</div>
-      <div class="settings-card">
-        <div class="settings-row" onclick="exportData()">
-          <div class="settings-row-label">📤 Εξαγωγή δεδομένων (JSON)</div>
-          <div class="settings-arrow">›</div>
-        </div>
-        <div class="settings-row" onclick="resetProgram()">
-          <div class="settings-row-label" style="color:var(--orange)">🔄 Επαναφορά προγράμματος</div>
-          <div class="settings-arrow">›</div>
-        </div>
-        <div class="settings-row" onclick="resetAll()">
-          <div class="settings-row-label" style="color:var(--red)">⚠️ Διαγραφή όλων</div>
-          <div class="settings-arrow">›</div>
-        </div>
-      </div>
-    </div>
-    <div style="text-align:center;padding:20px;color:var(--txt3);font-size:13px">
-      PPL Tracker · Intermediate 53y · v1.0
-    </div>`;
+// ═══════════════════════════════════════════
+function renderSettings(){
+  var fsBtns=['sm','md','lg','xl'].map(function(s){
+    var lbl={sm:'Μικρό',md:'Κανον.',lg:'Μεγάλο',xl:'Πολύ Μεγ.'}[s],on=ST.fs===s;
+    return'<button class="fs-btn" onclick="setFs(\''+s+'\')" style="background:'+(on?'var(--acc)':'rgba(10,132,255,.12)')+';color:'+(on?'#fff':'var(--acc)')+';font-size:'+FS[s]+'">'+lbl+'</button>';
+  }).join('');
+  var sessBtns=SO.map(function(s,i){
+    var sess=ST.prog[s],on=i===ST.si;
+    return'<button onclick="setSess('+i+')" style="flex:1;padding:8px;border-radius:10px;border:none;cursor:pointer;font-weight:700;font-size:inherit;font-family:inherit;background:'+(on?sess.color+'44':'rgba(255,255,255,.07)')+';color:'+(on?sess.color:'var(--txt3)')+'">'+sess.icon+' '+sess.name+'</button>';
+  }).join('');
+  document.getElementById('settings-body').innerHTML=
+    '<div class="sett-sec"><div class="sett-title">Εμφάνιση</div><div class="sett-card"><div style="padding:14px 16px"><div style="font-weight:600;margin-bottom:10px">Μέγεθος γραμματοσειράς</div><div class="fs-pick">'+fsBtns+'</div></div></div></div>'+
+    '<div class="sett-sec"><div class="sett-title">Κύκλος Προπόνησης</div><div class="sett-card">'+
+      '<div style="padding:13px 16px;border-bottom:1px solid var(--sep)"><div style="font-weight:600;margin-bottom:10px">Εβδομάδα κύκλου</div>'+
+        '<div style="display:flex;align-items:center;gap:16px">'+
+          '<button class="btn btn-ghost" style="width:36px;height:36px;padding:0;border-radius:50%;font-size:1.3em" onclick="adjW(-1)" '+(ST.cw<=1?'disabled':'')+'>−</button>'+
+          '<div style="flex:1">'+bdg(WK[ST.cw-1].l,WK[ST.cw-1].c)+'</div>'+
+          '<button class="btn btn-ghost" style="width:36px;height:36px;padding:0;border-radius:50%;font-size:1.3em" onclick="adjW(1)" '+(ST.cw>=4?'disabled':'')+'>+</button>'+
+        '</div>'+
+      '</div>'+
+      '<div style="padding:13px 16px;border-bottom:1px solid var(--sep)"><div style="font-weight:600;margin-bottom:10px">Τρέχον Session</div><div style="display:flex;gap:8px">'+sessBtns+'</div></div>'+
+      '<div style="display:flex;align-items:center;padding:13px 16px"><div style="flex:1">Συνολικές προπονήσεις</div><div style="font-weight:700;color:var(--acc)">'+ST.total+'</div></div>'+
+    '</div></div>'+
+    '<div class="sett-sec"><div class="sett-title">Αποθήκευση & Μεταφορά</div>'+
+      '<div style="background:rgba(10,132,255,.08);border-radius:12px;padding:12px 14px;margin-bottom:10px;font-size:.88em;color:var(--tel)">'+
+        '💾 Αποθηκεύεται τοπικά σε <b>'+esc(STORAGE_MODE)+'</b> στον browser αυτής της συσκευής.<br>'+
+        'Το IndexedDB είναι πιο κατάλληλο από localStorage για μεγαλύτερο δομημένο ιστορικό. Για άλλη συσκευή χρησιμοποίησε εξαγωγή/εισαγωγή JSON ή clipboard.'+
+      '</div>'+
+      '<div class="sett-card">'+
+        '<div class="sett-row" onclick="exportData()"><div style="flex:1">📤 Εξαγωγή αρχείου JSON</div><div style="color:var(--txt3)">›</div></div>'+
+        '<div class="sett-row" onclick="document.getElementById(\'file-in\').click()"><div style="flex:1">📥 Εισαγωγή από αρχείο JSON</div><div style="color:var(--txt3)">›</div></div>'+
+        '<div class="sett-row" onclick="copyBackup()"><div style="flex:1">📋 Αντιγραφή backup (clipboard)</div><div style="color:var(--txt3)">›</div></div>'+
+        '<div class="sett-row" onclick="pasteBackup()"><div style="flex:1">📋 Επαναφορά από clipboard</div><div style="color:var(--txt3)">›</div></div>'+
+        '<div class="sett-row" style="border-top:1px solid var(--sep)" onclick="resetProg()"><div style="flex:1;color:var(--org)">🔄 Επαναφορά προγράμματος</div><div style="color:var(--txt3)">›</div></div>'+
+        '<div class="sett-row" onclick="resetAll()"><div style="flex:1;color:var(--red)">⚠️ Διαγραφή όλων</div><div style="color:var(--txt3)">›</div></div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="text-align:center;padding:6px 20px 20px;color:var(--txt3);font-size:.82em">PPL Tracker · v6.0 · IndexedDB</div>';
 }
-
-function adjustWeek(d) {
-  STATE.cycleWeek = Math.max(1, Math.min(4, STATE.cycleWeek + d));
-  saveState(); renderSettings();
-}
-function setSessionIdx(i) {
-  STATE.sessionIdx = i;
-  saveState(); renderSettings();
-}
-function exportData() {
-  const data = JSON.stringify(STATE, null, 2);
-  const blob = new Blob([data], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'ppl-backup.json'; a.click();
+function setFs(s){ST.fs=s;saveST();applyFs();renderSettings()}
+function adjW(d){ST.cw=Math.max(1,Math.min(4,ST.cw+d));saveST();renderSettings()}
+function setSess(i){ST.si=i;saveST();renderSettings()}
+function exportData(){
+  var blob=new Blob([JSON.stringify(ST,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='ppl-backup.json';a.click();
   showToast('Εξαγωγή ολοκληρώθηκε');
 }
-function resetProgram() {
-  showModal('Επαναφορά;', 'Το πρόγραμμα θα επιστρέψει στις αρχικές ασκήσεις. Το ιστορικό δεν χάνεται.',
-    [{ label:'Επαναφορά', action:'doResetProgram()', style:'danger' },
-     { label:'Άκυρο', action:'closeModal()', style:'' }]);
+function doImport(txt){
+  try{
+    var d=JSON.parse(txt);if(!d.logs)throw 1;
+    if(d.logs)ST.logs=d.logs;
+    if(d.prog)ST.prog=d.prog;
+    if(d.cw)ST.cw=d.cw;
+    if(d.si!==undefined)ST.si=d.si;
+    if(d.total)ST.total=d.total;
+    if(d.fs)ST.fs=d.fs;
+    saveST();applyFs();
+    showToast('Εισαγωγή ολοκληρώθηκε ✓');
+    renderSettings();renderHome();
+  }catch(e){showToast('Σφάλμα — μη έγκυρο αρχείο','rgba(255,69,58,.92)')}
 }
-function doResetProgram() {
-  STATE.program = JSON.parse(JSON.stringify(DEFAULT_PROGRAM));
-  saveState(); closeModal(); renderSettings(); showToast('Πρόγραμμα επαναφέρθηκε');
+function copyBackup(){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(JSON.stringify(ST)).then(function(){showToast('Αντιγράφηκε! Κάνε paste στην άλλη συσκευή')});
+  }else{showToast('Δεν υποστηρίζεται — χρήσιμοποίησε εξαγωγή αρχείου','rgba(255,159,10,.92)')}
 }
-function resetAll() {
-  showModal('⚠️ Διαγραφή ΟΛΩΝ', 'Θα διαγραφούν ΟΛΕΣ οι καταγραφές και το ιστορικό. Αυτό δεν αναστρέφεται.',
-    [{ label:'Διαγραφή όλων', action:'doResetAll()', style:'danger' },
-     { label:'Άκυρο', action:'closeModal()', style:'' }]);
+function pasteBackup(){
+  if(navigator.clipboard&&navigator.clipboard.readText){
+    navigator.clipboard.readText().then(function(txt){doImport(txt)});
+  }else{showToast('Δεν υποστηρίζεται — χρήσιμοποίησε εισαγωγή αρχείου','rgba(255,159,10,.92)')}
 }
-function doResetAll() {
-  localStorage.removeItem('pplState');
-  STATE = loadState();
-  closeModal(); renderSettings(); renderHome();
-  showToast('Όλα διαγράφηκαν');
+function resetProg(){
+  showModal('Επαναφορά;','Το ιστορικό δεν χάνεται.',[
+    {l:'Επαναφορά',red:true,fn:function(){ST.prog=JSON.parse(JSON.stringify(DEF));saveST();renderProg();showToast('Επαναφέρθηκε')}}
+  ]);
 }
+function resetAll(){
+  showModal('⚠️ Διαγραφή ΟΛΩΝ','Θα διαγραφούν ΟΛΑ. Δεν αναστρέφεται.',[
+    {l:'Διαγραφή όλων',red:true,fn:function(){ST=defState();saveST();applyFs();goTo('home');showToast('Διαγράφηκαν')}}
+  ]);
+}
+document.getElementById('file-in').onchange=function(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();r.onload=function(ev){doImport(ev.target.result)};r.readAsText(f);
+  this.value='';
+};
 
-// ══════════════════════════════════════════════════════
-// MODAL
-// ══════════════════════════════════════════════════════
-function showModal(title, msg, buttons) {
-  let html = `<div class="modal-title">${title}</div>`;
-  if (msg) html += `<p style="text-align:center;color:var(--txt3);font-size:15px;margin-bottom:16px">${msg}</p>`;
-  buttons.forEach(b => {
-    html += `<button class="modal-btn ${b.style==='danger'?'danger':''} ${b.style==='primary'?'primary':''}" onclick="${b.action}">${b.label}</button>`;
-  });
-  html += `<button class="modal-cancel" onclick="closeModal()">Άκυρο</button>`;
-  document.getElementById('modal-sheet').innerHTML = html;
-  document.getElementById('modal').classList.add('active');
-}
-function closeModal() { document.getElementById('modal').classList.remove('active'); }
-document.getElementById('modal').addEventListener('click', e => { if(e.target.id==='modal') closeModal(); });
-
-// ══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // INIT
-// ══════════════════════════════════════════════════════
-renderHome();
+// ═══════════════════════════════════════════
+loadST().then(function(st){
+  ST=st;
+  applyFs();
+  requestPersistentStorage();
+  renderHome();
+  setProgTab('push');
+  renderHistTabs();
+  // If workout was in progress (e.g. after page refresh), restore it
+  if(ST.active){buildWorkoutDOM()}
+}).catch(function(){
+  ST=defState();
+  applyFs();
+  renderHome();
+  setProgTab('push');
+  renderHistTabs();
+});
 </script>
 </body>
 </html>
