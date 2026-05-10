@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>iOS Mobile Menu</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: #f2f2f7;
+      color: #111;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 430px;
+      background: white;
+      border-radius: 28px;
+      padding: 30px 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .title {
+      text-align: center;
+      font-size: 30px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 15px;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .menu a {
+      text-decoration: none;
+      background: #007aff;
+      color: white;
+      padding: 18px;
+      border-radius: 18px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      transition: 0.2s ease;
+    }
+
+    .menu a:active {
+      transform: scale(0.97);
+      background: #005fd1;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 25px;
+      font-size: 13px;
+      color: #999;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #000;
+        color: white;
+      }
+
+      .container {
+        background: #1c1c1e;
+      }
+
+      .subtitle,
+      .footer {
+        color: #aaa;
+      }
+
+      .menu a {
+        background: #0a84ff;
+      }
+
+      .menu a:active {
+        background: #0066cc;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="title">My App</div>
+    <div class="subtitle">Front Page Menu</div>
+
+    <div class="menu">
+      <a href="home.html">Home</a>
+      <a href="about.html">About</a>
+      <a href="services.html">Services</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="contact.html">Contact</a>
+    </div>
+
+    <div class="footer">
+      © 2026 My Mobile Site
+    </div>
+
+  </div>
+
+</body>
+</html>
