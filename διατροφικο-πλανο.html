@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Πλάνο Διατροφής">
+<meta name="theme-color" content="#1e3a5f">
+<title>Διατροφικό Πλάνο</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; color: #0f172a; }
+
+  .header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d6a4f 100%);
+    color: #fff; padding: 20px 16px 18px;
+  }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .header h1 { font-size: 20px; font-weight: 800; line-height: 1.2; }
+  .header-sub { font-size: 12px; color: #a7f3d0; margin-top: 3px; }
+  .header-badge { background: rgba(255,255,255,0.15); border-radius: 10px; padding: 7px 11px; text-align: center; flex-shrink: 0; }
+  .header-badge-label { font-size: 10px; color: #bfdbfe; }
+  .header-badge-val { font-weight: 800; font-size: 15px; }
+  .kcal-chips { display: flex; gap: 7px; margin-top: 12px; flex-wrap: wrap; }
+  .kcal-chip { background: rgba(255,255,255,0.15); border-radius: 7px; padding: 4px 9px; font-size: 11px; }
+
+  .tabs { display: flex; background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
+  .tab-btn { flex: 1; padding: 12px 0; border: none; background: transparent; cursor: pointer; font-size: 13px; font-weight: 600; color: #94a3b8; border-bottom: 2px solid transparent; transition: all 0.15s; }
+  .tab-btn.active { color: #1e3a5f; border-bottom-color: #1e3a5f; }
+
+  .day-pills { display: flex; overflow-x: auto; background: #fff; padding: 9px 10px; gap: 6px; border-bottom: 1px solid #f1f5f9; scrollbar-width: none; }
+  .day-pills::-webkit-scrollbar { display: none; }
+  .day-pill { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding: 7px 13px; border-radius: 11px; border: none; cursor: pointer; transition: all 0.15s; background: #f1f5f9; color: #64748b; font-family: inherit; }
+  .day-pill.active-gym { background: #1e3a5f; color: #fff; }
+  .day-pill.active-rest { background: #2d6a4f; color: #fff; }
+  .day-pill-name { font-size: 11px; font-weight: 700; }
+  .day-pill-icon { font-size: 14px; margin-top: 2px; }
+
+  .day-header { background: #fff; padding: 14px 16px 12px; margin-bottom: 3px; }
+  .day-header-row { display: flex; justify-content: space-between; align-items: center; }
+  .day-name { font-size: 20px; font-weight: 800; }
+  .day-type { font-size: 12px; font-weight: 600; margin-top: 3px; }
+  .day-type.gym { color: #1e40af; }
+  .day-type.rest { color: #15803d; }
+  .day-kcal { text-align: right; }
+  .day-kcal-val { font-size: 26px; font-weight: 900; }
+  .day-kcal-val.gym { color: #1e40af; }
+  .day-kcal-val.rest { color: #15803d; }
+  .day-kcal-lbl { font-size: 10px; color: #94a3b8; }
+  .macros { display: flex; gap: 7px; margin-top: 11px; }
+  .macro { flex: 1; border-radius: 9px; padding: 7px 4px; text-align: center; }
+  .macro-val { font-weight: 800; font-size: 14px; }
+  .macro-lbl { font-size: 10px; color: #94a3b8; margin-top: 1px; }
+  .macro.protein { background: #fef2f2; } .macro.protein .macro-val { color: #dc2626; }
+  .macro.carbs   { background: #fffbeb; } .macro.carbs   .macro-val { color: #d97706; }
+  .macro.fat     { background: #eff6ff; } .macro.fat     .macro-val { color: #2563eb; }
+  .macro-note { font-size: 10px; color: #94a3b8; text-align: center; margin-top: 6px; }
+
+  .meals-list { padding: 6px 10px 28px; display: flex; flex-direction: column; gap: 9px; }
+
+  .meal-card { border-radius: 13px; overflow: hidden; box-shadow: 0 1px 5px rgba(0,0,0,0.07); }
+  .meal-card.normal   { border-left: 4px solid #e2e8f0; background: #fff; }
+  .meal-card.pre-gym  { border-left: 4px solid #f59e0b; background: #fffbeb; }
+  .meal-card.post-gym { border-left: 4px solid #22c55e; background: #f0fdf4; }
+  .meal-inner { padding: 13px 14px; }
+  .meal-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 9px; }
+  .meal-left { display: flex; align-items: center; }
+  .meal-emoji { font-size: 21px; margin-right: 9px; }
+  .meal-title { font-weight: 700; font-size: 13px; color: #0f172a; }
+  .meal-badges { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-top: 1px; }
+  .meal-time { font-size: 11px; color: #94a3b8; }
+  .badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 700; }
+  .badge.pre  { background: #fbbf24; color: #78350f; }
+  .badge.post { background: #22c55e; color: #fff; }
+  .meal-kcal { text-align: right; flex-shrink: 0; }
+  .meal-kcal-val { font-weight: 800; font-size: 15px; color: #334155; }
+  .meal-kcal-lbl { font-size: 10px; color: #94a3b8; }
+  .meal-items { display: flex; flex-direction: column; gap: 6px; }
+  .meal-item { display: flex; justify-content: space-between; align-items: center; }
+  .meal-item-name { font-size: 13px; color: #334155; flex: 1; }
+  .meal-item-right { text-align: right; margin-left: 8px; flex-shrink: 0; }
+  .meal-item-amount { font-size: 12px; color: #64748b; font-weight: 600; }
+  .meal-item-kcal { font-size: 11px; color: #94a3b8; margin-left: 3px; }
+  .meal-tip { margin-top: 9px; background: rgba(30,58,95,0.06); border-radius: 7px; padding: 7px 9px; font-size: 12px; color: #1e40af; line-height: 1.5; }
+
+  .gym-note { background: #eff6ff; border-radius: 11px; padding: 11px 13px; border: 1px solid #bfdbfe; margin: 0 10px 8px; }
+  .gym-note-title { font-weight: 700; font-size: 12px; color: #1e40af; margin-bottom: 4px; }
+  .gym-note-text { font-size: 12px; color: #1e40af; line-height: 1.6; }
+
+  /* Shopping list */
+  .shopping-wrap { padding: 14px 10px 40px; }
+  .shopping-intro { background: #ecfdf5; border-radius: 11px; padding: 11px 13px; margin-bottom: 13px; border: 1px solid #a7f3d0; }
+  .shopping-intro-title { font-weight: 700; color: #065f46; font-size: 13px; margin-bottom: 3px; }
+  .shopping-intro-sub { font-size: 12px; color: #065f46; line-height: 1.5; }
+  .shop-section { margin-bottom: 13px; }
+  .shop-section-title { font-weight: 800; font-size: 14px; color: #0f172a; margin-bottom: 6px; padding-left: 3px; }
+  .shop-items { background: #fff; border-radius: 11px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+  .shop-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 13px; border-bottom: 1px solid #f1f5f9; }
+  .shop-item:last-child { border-bottom: none; }
+  .shop-item-name { font-size: 13px; color: #334155; }
+  .shop-item-amount { font-size: 12px; color: #64748b; margin-left: 8px; text-align: right; flex-shrink: 0; }
+
+  .tips-box { background: #fff7ed; border-radius: 11px; padding: 13px; border: 1px solid #fed7aa; margin-top: 4px; }
+  .tips-title { font-weight: 700; color: #9a3412; font-size: 13px; margin-bottom: 7px; }
+  .tip-row { display: flex; gap: 7px; font-size: 12px; color: #9a3412; line-height: 1.5; margin-bottom: 5px; }
+  .tip-row:last-child { margin-bottom: 0; }
+  .tip-check { flex-shrink: 0; font-weight: 700; }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#93c5fd;margin-bottom:4px">Εβδομαδιαίο Πλάνο</div>
+      <h1>Διατροφικό Πλάνο</h1>
+      <div class="header-sub">53 ετών · Push/Pull/Legs · 76→72 kg</div>
+    </div>
+    <div class="header-badge">
+      <div class="header-badge-label">Στόχος</div>
+      <div class="header-badge-val">−4 kg</div>
+    </div>
+  </div>
+  <div class="kcal-chips">
+    <div class="kcal-chip">🏋️ Γυμν.: ~2.060 kcal</div>
+    <div class="kcal-chip">🛌 Ανάπ.: ~1.950 kcal</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tab-plan" onclick="switchTab('plan')">📅 Εβδομ. Πλάνο</button>
+  <button class="tab-btn" id="tab-shopping" onclick="switchTab('shopping')">🛒 Αγορές</button>
+</div>
+
+<!-- PLAN -->
+<div id="panel-plan">
+  <div class="day-pills" id="day-pills"></div>
+  <div id="day-header" class="day-header"></div>
+  <div class="meals-list" id="meals-list"></div>
+</div>
+
+<!-- SHOPPING -->
+<div id="panel-shopping" class="hidden shopping-wrap">
+  <div class="shopping-intro">
+    <div class="shopping-intro-title">📋 Λίστα Αγορών — 1 εβδομάδα</div>
+    <div class="shopping-intro-sub">Αρκεί για 7 ημέρες. Όλα βρίσκονται σε ελληνικό supermarket.</div>
+  </div>
+  <div id="shopping-list"></div>
+  <div class="tips-box">
+    <div class="tips-title">💡 5 Tips για να σε βοηθήσουν</div>
+    <div class="tip-row"><span class="tip-check">✓</span><span>Μαγείρεψε κοτόπουλο bulk κάθε Κυριακή (500-600g) — εξοικονομείς χρόνο καθημερινά.</span></div>
+    <div class="tip-row"><span class="tip-check">✓</span><span>Βράσε αυγά 6-8 τεμ. παρτίδα — κρατούν 5 μέρες στο ψυγείο.</span></div>
+    <div class="tip-row"><span class="tip-check">✓</span><span>Χρησιμοποίησε ζυγαριά κουζίνας για τους πρώτους 2-3 μήνες μέχρι να «μάθεις» τα μάτια σου.</span></div>
+    <div class="tip-row"><span class="tip-check">✓</span><span>Πόσιμο νερό: στόχος 2,5-3 λίτρα ημερησίως — κρίσιμο για μεταβολισμό & ανάκαμψη.</span></div>
+    <div class="tip-row"><span class="tip-check">✓</span><span>Αν λείψεις γεύμα, μην το «αντισταθμίσεις» — απλά συνέχισε κανονικά.</span></div>
+  </div>
+</div>
+
+<script>
+const DAYS = [
+  { day:"Δευτέρα", shortDay:"ΔΕΥ", type:"gym", totalKcal:2060, protein:132, carbs:215, fat:67,
+    meals:[
+      { time:"07:00", label:"Πρωινό", emoji:"🌅", gymTag:null, totalKcal:489,
+        items:[{food:"Νιφάδες βρώμης",amount:"70g",kcal:260},{food:"Γιαούρτι στραγγιστό 2%",amount:"200g",kcal:130},{food:"Μέλι",amount:"15g",kcal:45},{food:"Μπανάνα (μισή)",amount:"60g",kcal:54}],
+        tip:"Ανακάτεψε βρώμη + γιαούρτι + μέλι σε 2 λεπτά. Γρήγορο και χορταστικό."},
+      { time:"10:30", label:"Σνακ (δουλειά)", emoji:"🍎", gymTag:null, totalKcal:220,
+        items:[{food:"Αμύγδαλα ανάλατα",amount:"25g",kcal:145},{food:"Μήλο",amount:"1 τεμ. (~150g)",kcal:75}],
+        tip:"Ετοίμασέ τα το βράδυ στο σπίτι και πάρε τα μαζί."},
+      { time:"13:00", label:"Μεσημεριανό", emoji:"🍽️", gymTag:null, totalKcal:575,
+        items:[{food:"Στήθος κοτόπουλου (ψητό)",amount:"180g",kcal:198},{food:"Ρύζι ωμό (→ ~175g μαγ.)",amount:"70g",kcal:252},{food:"Ντομάτα + Αγγούρι",amount:"200g",kcal:35},{food:"Ελαιόλαδο",amount:"10ml (1 κ.σ.)",kcal:90}],
+        tip:"Μαγείρεψε κοτόπουλο την Κυριακή βράδυ για όλη την εβδομάδα — μεγάλη εξοικονόμηση χρόνου!"},
+      { time:"16:30", label:"Απογ. Σνακ (δουλειά)", emoji:"🧀", gymTag:null, totalKcal:270,
+        items:[{food:"Ανθότυρο ή Cottage Cheese",amount:"150g",kcal:150},{food:"Κράκερς ολικής άλεσης",amount:"30g (3 τεμ.)",kcal:120}],
+        tip:null},
+      { time:"19:30", label:"Πριν το Γυμναστήριο", emoji:"⚡", gymTag:"pre", totalKcal:178,
+        items:[{food:"Μπανάνα",amount:"1 τεμ. (~120g)",kcal:108},{food:"Ρυζογκοφρέτες",amount:"2 τεμ. (18g)",kcal:70}],
+        tip:"Εύπεπτοι υδατάνθρακες = ενέργεια χωρίς βάρος στο στομάχι."},
+      { time:"21:00", label:"Μετά το Γυμναστήριο", emoji:"💪", gymTag:"post", totalKcal:325,
+        items:[{food:"Αυγά (βραστά ή ομελέτα)",amount:"3 τεμ. (180g)",kcal:210},{food:"Ψωμί ολικής άλεσης",amount:"1 φέτα (30g)",kcal:75},{food:"Τυρί light (π.χ. Edam light)",amount:"20g",kcal:40}],
+        tip:"Φάε μέσα σε 30-60' μετά. Πρωτεΐνη ΤΩΡΑ = ανάκαμψη μυών."}
+    ]},
+  { day:"Τρίτη", shortDay:"ΤΡΙ", type:"rest", totalKcal:1925, protein:115, carbs:198, fat:70,
+    meals:[
+      { time:"07:00", label:"Πρωινό", emoji:"🌅", gymTag:null, totalKcal:435,
+        items:[{food:"Αυγά (ομελέτα με λαχανικά)",amount:"3 τεμ. (180g)",kcal:210},{food:"Ψωμί ολικής άλεσης",amount:"2 φέτες (60g)",kcal:150},{food:"Ντομάτα",amount:"150g",kcal:30},{food:"Ελαιόλαδο",amount:"5ml",kcal:45}],
+        tip:null},
+      { time:"10:30", label:"Σνακ (δουλειά)", emoji:"🍓", gymTag:null, totalKcal:192,
+        items:[{food:"Γιαούρτι στραγγιστό 2%",amount:"200g",kcal:130},{food:"Φράουλες",amount:"100g",kcal:32},{food:"Μέλι",amount:"10g",kcal:30}],
+        tip:null},
+      { time:"13:00", label:"Μεσημεριανό", emoji:"🍽️", gymTag:null, totalKcal:570,
+        items:[{food:"Μπιφτέκια μοσχαρίσια (φούρνος)",amount:"200g ωμό",kcal:280},{food:"Πατάτες φούρνου",amount:"200g",kcal:160},{food:"Σαλάτα (μαρούλι, ντομ., αγγ.)",amount:"200g",kcal:40},{food:"Ελαιόλαδο",amount:"10ml",kcal:90}],
+        tip:"Φτιάξε τα μπιφτέκια χωρίς παναρίσιο στο φούρνο / σχάρα — χωρίς επιπλέον λίπος."},
+      { time:"16:30", label:"Απογ. Σνακ (δουλειά)", emoji:"🍊", gymTag:null, totalKcal:245,
+        items:[{food:"Αμύγδαλα ανάλατα",amount:"25g",kcal:145},{food:"Πορτοκάλι",amount:"1 τεμ. (~200g)",kcal:100}],
+        tip:null},
+      { time:"20:00", label:"Βραδινό", emoji:"🌙", gymTag:null, totalKcal:415,
+        items:[{food:"Αυγά (ομελέτα)",amount:"3 τεμ. (180g)",kcal:210},{food:"Λαχανικά sauté (πιπεριά, κολοκύθι)",amount:"200g",kcal:70},{food:"Ψωμί ολικής άλεσης",amount:"1 φέτα (30g)",kcal:75},{food:"Ελαιόλαδο",amount:"5ml",kcal:45}],
+        tip:"Αρκετή πρωτεΐνη για το βράδυ χωρίς βαριά γεύματα."}
+    ]},
+  { day:"Τετάρτη", shortDay:"ΤΕΤ", type:"gym", totalKcal:2020, protein:128, carbs:202, fat:71,
+    meals:[
+      { time:"07:00", label:"Πρωινό", emoji:"🌅", gymTag:null, totalKcal:460,
+        items:[{food:"Αυγά scrambled",amount:"3 τεμ. (180g)",kcal:210},{food:"Ψωμί ολικής άλεσης",amount:"2 φέτες (60g)",kcal:150},{food:"Αβοκάντο",amount:"½ τεμ. (~50g)",kcal:80},{food:"Ντομάτα",amount:"100g",kcal:20}],
+        tip:null},
+      { time:"10:30", label:"Σνακ (δουλειά)", emoji:"🫐", gymTag:null, totalKcal:187,
+        items:[{food:"Γιαούρτι στραγγιστό 2%",amount:"200g",kcal:130},{food:"Μύρτιλα (blueberries)",amount:"100g",kcal:57}],
+        tip:null},
+      { time:"13:00", label:"Μεσημεριανό", emoji:"🥫", gymTag:null, totalKcal:466,
+        items:[{food:"Τόνος σε νερό (2 κονσέρβες)",amount:"160g στραγγ.",kcal:136},{food:"Πατάτα βραστή",amount:"250g",kcal:200},{food:"Σαλάτα (ντομ., αγγ., μαρούλι)",amount:"200g",kcal:40},{food:"Ελαιόλαδο + λεμόνι",amount:"10ml",kcal:90}],
+        tip:"Η πατάτα σου δίνει «καύσιμο» για την προπόνηση του βραδιού!"},
+      { time:"16:30", label:"Απογ. Σνακ (δουλειά)", emoji:"🧀", gymTag:null, totalKcal:266,
+        items:[{food:"Αμύγδαλα ανάλατα",amount:"20g",kcal:116},{food:"Ανθότυρο / Cottage Cheese",amount:"150g",kcal:150}],
+        tip:null},
+      { time:"19:30", label:"Πριν το Γυμναστήριο", emoji:"⚡", gymTag:"pre", totalKcal:189,
+        items:[{food:"Μπανάνα (μισή)",amount:"60g",kcal:54},{food:"Ρυζογκοφρέτες",amount:"3 τεμ. (27g)",kcal:105},{food:"Μέλι",amount:"10g",kcal:30}],
+        tip:null},
+      { time:"21:00", label:"Μετά το Γυμναστήριο", emoji:"💪", gymTag:"post", totalKcal:355,
+        items:[{food:"Στήθος γαλοπούλας (ψητό/βραστό)",amount:"150g",kcal:150},{food:"Ψωμί ολικής άλεσης",amount:"2 φέτες (60g)",kcal:150},{food:"Τυρί light",amount:"20g",kcal:40},{food:"Αγγούρι",amount:"100g",kcal:15}],
+        tip:"Εναλλακτικά: 3 αυγά βραστά + ψωμί αν δεν έχεις γαλοπούλα."}
+    ]},
+  { day:"Πέμπτη", shortDay:"ΠΕΜ", type:"rest", totalKcal:1911, protein:118, carbs:228, fat:57,
+    meals:[
+      { time:"07:00", label:"Πρωινό", emoji:"🌅", gymTag:null, totalKcal:456,
+        items:[{food:"Νιφάδες βρώμης",amount:"80g",kcal:296},{food:"Γάλα 1,5% λιπαρά",amount:"250ml",kcal:115},{food:"Μέλι",amount:"15g",kcal:45}],
+        tip:"Πρόσθεσε κανέλα — γεύση χωρίς θερμίδες και βοηθά στο σάκχαρο."},
+      { time:"10:30", label:"Σνακ (δουλειά)", emoji:"🥚", gymTag:null, totalKcal:175,
+        items:[{food:"Αυγά βραστά",amount:"2 τεμ. (120g)",kcal:140},{food:"Ντομάτα + Αγγούρι",amount:"150g",kcal:25}],
+        tip:"Βράσε τα αυγά το βράδυ πριν και πάρε τα στη δουλειά."},
+      { time:"13:00", label:"Μεσημεριανό", emoji:"🍝", gymTag:null, totalKcal:563,
+        items:[{food:"Στήθος κοτόπουλου (ψητό)",amount:"180g",kcal:198},{food:"Ζυμαρικά ολικής (ωμά)",amount:"70g",kcal:245},{food:"Σάλτσα ντομάτας (χωρίς ζάχαρη)",amount:"100g",kcal:35},{food:"Παρμεζάνα (τριμμένη)",amount:"10g",kcal:40},{food:"Ελαιόλαδο",amount:"5ml",kcal:45}],
+        tip:null},
+      { time:"16:30", label:"Απογ. Σνακ (δουλειά)", emoji:"🍎", gymTag:null, totalKcal:220,
+        items:[{food:"Αμύγδαλα ανάλατα",amount:"25g",kcal:145},{food:"Μήλο",amount:"1 τεμ. (~150g)",kcal:75}],
+        tip:null},
+      { time:"20:00", label:"Βραδινό", emoji:"🌙", gymTag:null, totalKcal:477,
+        items:[{food:"Φακές σούπα (φακές ωμές)",amount:"80g",kcal:280},{food:"Καρότο",amount:"80g",kcal:32},{food:"Ελαιόλαδο",amount:"10ml",kcal:90},{food:"Ψωμί ολικής άλεσης",amount:"1 φέτα (30g)",kcal:75}],
+        tip:"Φτιάξε διπλή ποσότητα — μπορείς να φας και αύριο!"}
+    ]},
+  { day:"Παρασκευή", shortDay:"ΠΑΡ", type:"rest", totalKcal:2034, protein:128, carbs:177, fat:83,
+    meals:[
+      { time:"07:00", label:"Πρωινό", emoji:"🌅", gymTag:null, totalKcal:460,
+        items:[{food:"Αυγά (ομελέτα)",amount:"3 τεμ. (180g)",kcal:210},{food:"Ψωμί ολικής άλεσης",amount:"2 φέτες (60g)",kcal:150},{food:"Αβοκάντο",amount:"½ τεμ. (~50g)",kcal:80},{food:"Ντομάτα",amount:"100g",kcal:20}],
+        tip:null},
+      { time:"10:30", label:"Σνακ (δουλειά)", emoji:"🧀", gymTag:null, totalKcal:270,
+        items:[{food:"Ανθότυρο / Cottage Cheese",amount:"150g",kcal:150},{food:"Κράκερς ολικής άλεσης",amount:"30g (3 τεμ.)",kcal:120}],
+        tip:null},
+      { time:"13:00", label:"Μεσημεριανό", emoji:"🥗", gymTag:null, totalKcal:559,
+        items:[{food:"Τόνος σε νερό (2 κονσέρβες)",amount:"160g στραγγ.",kcal:136},{food:"Πατάτα βραστή",amount:"200g",kcal:160},{food:"Αγγούρι + Ντομάτα",amount:"200g",kcal:35},{food:"Φέτα ΠΟΠ",amount:"30g",kcal:78},{food:"Ελιές Καλαμών",amount:"5 τεμ. (~25g)",kcal:35},{food:"Ελαιόλαδο",amount:"10ml",kcal:90}],
+        tip:"Σαλάτα με τόνο — κλασική ελληνική, γρήγορη, γεμάτη πρωτεΐνη."},
+      { time:"16:30", label:"Απογ. Σνακ (δουλειά)", emoji:"🍊", gymTag:null, totalKcal:245,
+        items:[{food:"Αμύγδαλα ανάλατα",amount:"25g",kcal:145},{food:"Πορτοκάλι",amount:"1 τεμ. (~200g)",kcal:100}],
+        tip:null},
+      { time:"20:00", label:"Βραδινό", emoji:"🐟", gymTag:null, totalKcal:500,
+        items:[{food:"Σολομός φιλέτο (ψητός)",amount:"150g",kcal:300},{food:"Μπρόκολο (ατμός)",amount:"200g",kcal:70},{food:"Καρότο (ατμός)",amount:"100g",kcal:40},{food:"Ελαιόλαδο + λεμόνι",amount:"10ml",kcal:90}],
+        tip:"Φούρνος 200°C, 18-20 λεπτά — μαγειρεύεις και ξεκουράζεσαι."}
+    ]},
+  { day:"Σάββατο", shortDay:"ΣΑΒ", type:"gym", totalKcal:2082, protein:124, carbs:204, fat:81,
+    meals:[
+      { time:"07:00", label:"Πρωινό", emoji:"🌅", gymTag:null, totalKcal:533,
+        items:[{food:"Νιφάδες βρώμης",amount:"70g",kcal:260},{food:"Γιαούρτι στραγγιστό 2%",amount:"200g",kcal:130},{food:"Καρύδια",amount:"15g",kcal:98},{food:"Μέλι",amount:"15g",kcal:45}],
+        tip:null},
+      { time:"10:30", label:"Σνακ", emoji:"🥚", gymTag:null, totalKcal:175,
+        items:[{food:"Αυγά βραστά",amount:"2 τεμ. (120g)",kcal:140},{food:"Αγγούρι + Ντομάτα",amount:"150g",kcal:35}],
+        tip:null},
+      { time:"13:00", label:"Μεσημεριανό", emoji:"🐟", gymTag:null, totalKcal:606,
+        items:[{food:"Σολομός φιλέτο (ψητός)",amount:"180g",kcal:360},{food:"Κινόα (ωμή)",amount:"60g",kcal:216},{food:"Σαλάτα (ντομάτα, αγγ.)",amount:"150g",kcal:30}],
+        tip:"Βράσε την κινόα σε ζωμό κοτόπουλου — πολύ πιο γευστική."},
+      { time:"16:30", label:"Απογ. Σνακ", emoji:"🍓", gymTag:null, totalKcal:205,
+        items:[{food:"Γιαούρτι στραγγιστό 2%",amount:"200g",kcal:130},{food:"Μήλο",amount:"1 τεμ. (~150g)",kcal:75}],
+        tip:null},
+      { time:"19:30", label:"Πριν το Γυμναστήριο", emoji:"⚡", gymTag:"pre", totalKcal:188,
+        items:[{food:"Μπανάνα",amount:"1 τεμ. (~120g)",kcal:108},{food:"Κράκερς ολικής",amount:"2 τεμ. (20g)",kcal:80}],
+        tip:null},
+      { time:"21:00", label:"Μετά το Γυμναστήριο", emoji:"💪", gymTag:"post", totalKcal:365,
+        items:[{food:"Ανθότυρο / Cottage Cheese",amount:"200g",kcal:200},{food:"Ψωμί ολικής άλεσης",amount:"2 φέτες (60g)",kcal:150},{food:"Αγγούρι",amount:"100g",kcal:15}],
+        tip:"Cottage cheese = γρήγορη πρωτεΐνη χωρίς μαγείρεμα μετά τη βραδινή προπόνηση."}
+    ]},
+  { day:"Κυριακή", shortDay:"ΚΥΡ", type:"rest", totalKcal:1960, protein:120, carbs:193, fat:77,
+    meals:[
+      { time:"08:00", label:"Πρωινό", emoji:"🌅", gymTag:null, totalKcal:460,
+        items:[{food:"Αυγά (ομελέτα)",amount:"3 τεμ. (180g)",kcal:210},{food:"Ψωμί ολικής άλεσης",amount:"2 φέτες (60g)",kcal:150},{food:"Αβοκάντο",amount:"½ τεμ. (~50g)",kcal:80},{food:"Ντομάτα",amount:"100g",kcal:20}],
+        tip:"Κυριακάτικο πρωινό — πάρε χρόνο να το απολαύσεις."},
+      { time:"11:00", label:"Σνακ", emoji:"🍓", gymTag:null, totalKcal:290,
+        items:[{food:"Γιαούρτι στραγγιστό 2%",amount:"200g",kcal:130},{food:"Φράουλες",amount:"100g",kcal:32},{food:"Μέλι",amount:"10g",kcal:30},{food:"Καρύδια",amount:"15g",kcal:98}],
+        tip:null},
+      { time:"14:00", label:"Μεσημεριανό (κυριακάτικο!)", emoji:"🍽️", gymTag:null, totalKcal:651,
+        items:[{food:"Κοτόπουλο ψητό",amount:"180g",kcal:198},{food:"Ρύζι (ωμό)",amount:"60g",kcal:215},{food:"Χωριάτικη σαλάτα (φέτα 30g, ελιές, ΕΛ 10ml)",amount:"300g",kcal:238}],
+        tip:"Κλασικό κυριακάτικο! Φτιάξε κι έτοιμο κοτόπουλο για τη βδομάδα."},
+      { time:"17:00", label:"Απογ. Σνακ", emoji:"🍎", gymTag:null, totalKcal:245,
+        items:[{food:"Αμύγδαλα ανάλατα",amount:"20g",kcal:116},{food:"Πορτοκάλι",amount:"1 τεμ. (~200g)",kcal:100}],
+        tip:null},
+      { time:"20:00", label:"Βραδινό", emoji:"🌙", gymTag:null, totalKcal:298,
+        items:[{food:"Τόνος σε νερό",amount:"1 κονσέρβα (80g)",kcal:68},{food:"Ψωμί ολικής άλεσης",amount:"2 φέτες (60g)",kcal:150},{food:"Αγγούρι + Ντομάτα",amount:"150g",kcal:35},{food:"Ελαιόλαδο",amount:"5ml",kcal:45}],
+        tip:"Ελαφρύ βραδινό — ξεκινάς «φρέσκος» τη νέα εβδομάδα."}
+    ]}
+];
+
+const SHOPPING = [
+  { category:"🥩 Πρωτεΐνες", items:[
+    {item:"Στήθος κοτόπουλου",amount:"~900g (2 πακέτα)"},
+    {item:"Στήθος γαλοπούλας (φέτες)",amount:"~200g (1 πακέτο)"},
+    {item:"Μοσχαρίσιος κιμάς (5% λιπαρά)",amount:"~250g"},
+    {item:"Τόνος σε νερό (κονσέρβες 80g)",amount:"5 κονσέρβες"},
+    {item:"Σολομός φιλέτο (φρέσκος ή κατεψ.)",amount:"~350g"},
+    {item:"Αυγά (free range)",amount:"2 πακέτα × 12 = 24 τεμ."}
+  ]},
+  { category:"🥛 Γαλακτοκομικά", items:[
+    {item:"Γιαούρτι στραγγιστό 2% (Όλυμπος, Αρής)",amount:"~1,5kg"},
+    {item:"Ανθότυρο ή Cottage Cheese",amount:"~900g"},
+    {item:"Γάλα 1,5% λιπαρά",amount:"1L"},
+    {item:"Τυρί light (Edam light, Γουδά light)",amount:"100g"},
+    {item:"Φέτα ΠΟΠ",amount:"150g"},
+    {item:"Παρμεζάνα τριμμένη",amount:"50g (σακουλάκι)"}
+  ]},
+  { category:"🌾 Δημητριακά & Υδατάνθρακες", items:[
+    {item:"Νιφάδες βρώμης ολικής άλεσης",amount:"500g"},
+    {item:"Ψωμί ολικής άλεσης (φέτες)",amount:"1 καρβέλι / πακέτο"},
+    {item:"Ρύζι (μπασμάτι ή καστανό)",amount:"500g"},
+    {item:"Ζυμαρικά ολικής άλεσης",amount:"500g"},
+    {item:"Κινόα",amount:"200g"},
+    {item:"Ρυζογκοφρέτες (plain)",amount:"1 πακέτο"},
+    {item:"Κράκερς ολικής άλεσης (π.χ. Finn Crisp)",amount:"1 πακέτο"},
+    {item:"Σάλτσα ντομάτας (χωρίς ζάχαρη)",amount:"1 κουτί 400g"}
+  ]},
+  { category:"🥑 Λίπη & Ξηροί Καρποί", items:[
+    {item:"Ελαιόλαδο παρθένο",amount:"υπάρχει στο σπίτι"},
+    {item:"Αμύγδαλα ανάλατα",amount:"250g"},
+    {item:"Καρύδια",amount:"100g"},
+    {item:"Αβοκάντο",amount:"3 τεμ."},
+    {item:"Ελιές Καλαμών",amount:"1 βαζάκι"}
+  ]},
+  { category:"🍎 Φρούτα", items:[
+    {item:"Μπανάνες",amount:"6 τεμ."},
+    {item:"Μήλα",amount:"5 τεμ."},
+    {item:"Πορτοκάλια",amount:"5 τεμ."},
+    {item:"Φράουλες",amount:"250g"},
+    {item:"Μύρτιλα (blueberries)",amount:"125g"},
+    {item:"Λεμόνια",amount:"4-5 τεμ."}
+  ]},
+  { category:"🥦 Λαχανικά", items:[
+    {item:"Ντομάτες",amount:"1,5kg"},
+    {item:"Αγγούρια",amount:"6 τεμ."},
+    {item:"Μαρούλι (Iceberg ή Cos)",amount:"2 τεμ."},
+    {item:"Πατάτες",amount:"1kg"},
+    {item:"Μπρόκολο",amount:"300g"},
+    {item:"Καρότα",amount:"500g"},
+    {item:"Πιπεριές",amount:"3 τεμ."},
+    {item:"Κολοκύθια",amount:"2 τεμ."},
+    {item:"Φακές πράσινες (ξερές)",amount:"200g"}
+  ]},
+  { category:"🍯 Pantry", items:[
+    {item:"Μέλι (ανθόμελο ή θυμαρίσιο)",amount:"1 βάζο 450g"},
+    {item:"Κανέλα σκόνη",amount:"1 κουτάκι"},
+    {item:"Ρίγανη, αλάτι, πιπέρι",amount:"ήδη υπάρχουν"},
+    {item:"Ζωμός κοτόπουλου",amount:"1 πακέτο"}
+  ]}
+];
+
+let activeDay = 0;
+
+function switchTab(tab) {
+  document.getElementById('panel-plan').classList.toggle('hidden', tab !== 'plan');
+  document.getElementById('panel-shopping').classList.toggle('hidden', tab !== 'shopping');
+  document.getElementById('tab-plan').classList.toggle('active', tab === 'plan');
+  document.getElementById('tab-shopping').classList.toggle('active', tab === 'shopping');
+}
+
+function renderDayPills() {
+  const container = document.getElementById('day-pills');
+  container.innerHTML = DAYS.map((d, i) => {
+    const isActive = i === activeDay;
+    const activeClass = isActive ? (d.type === 'gym' ? 'active-gym' : 'active-rest') : '';
+    return `<button class="day-pill ${activeClass}" onclick="selectDay(${i})">
+      <span class="day-pill-name">${d.shortDay}</span>
+      <span class="day-pill-icon">${d.type === 'gym' ? '🏋️' : '🛌'}</span>
+    </button>`;
+  }).join('');
+}
+
+function renderDayHeader(d) {
+  document.getElementById('day-header').innerHTML = `
+    <div class="day-header-row">
+      <div>
+        <div class="day-name">${d.day}</div>
+        <div class="day-type ${d.type}">${d.type === 'gym' ? '🏋️ Ημέρα Γυμναστηρίου' : '🛌 Ημέρα Ανάπαυσης'}</div>
+      </div>
+      <div class="day-kcal">
+        <div class="day-kcal-val ${d.type}">${d.totalKcal.toLocaleString('el')}</div>
+        <div class="day-kcal-lbl">θερμίδες</div>
+      </div>
+    </div>
+    <div class="macros">
+      <div class="macro protein"><div class="macro-val">${d.protein}g</div><div class="macro-lbl">Πρωτεΐνη</div></div>
+      <div class="macro carbs"><div class="macro-val">${d.carbs}g</div><div class="macro-lbl">Υδατ/κες</div></div>
+      <div class="macro fat"><div class="macro-val">${d.fat}g</div><div class="macro-lbl">Λιπαρά</div></div>
+    </div>
+    <div class="macro-note">* Εκτιμήσεις — καταγράφεις στην εφαρμογή σου για ακρίβεια</div>`;
+}
+
+function renderMeals(d) {
+  const container = document.getElementById('meals-list');
+  let html = d.meals.map(m => {
+    const cardClass = m.gymTag === 'pre' ? 'pre-gym' : m.gymTag === 'post' ? 'post-gym' : 'normal';
+    const badge = m.gymTag === 'pre'
+      ? '<span class="badge pre">⚡ PRE-GYM</span>'
+      : m.gymTag === 'post'
+      ? '<span class="badge post">💪 POST-GYM</span>'
+      : '';
+    const items = m.items.map(it =>
+      `<div class="meal-item">
+        <span class="meal-item-name">${it.food}</span>
+        <div class="meal-item-right">
+          <span class="meal-item-amount">${it.amount}</span>
+          ${it.kcal > 0 ? `<span class="meal-item-kcal">(${it.kcal})</span>` : ''}
+        </div>
+      </div>`
+    ).join('');
+    const tip = m.tip ? `<div class="meal-tip">💡 ${m.tip}</div>` : '';
+    return `<div class="meal-card ${cardClass}">
+      <div class="meal-inner">
+        <div class="meal-top">
+          <div class="meal-left">
+            <span class="meal-emoji">${m.emoji}</span>
+            <div>
+              <div class="meal-badges"><span class="meal-title">${m.label}</span>${badge}</div>
+              <div class="meal-time">${m.time}</div>
+            </div>
+          </div>
+          <div class="meal-kcal">
+            <span class="meal-kcal-val">${m.totalKcal}</span>
+            <span class="meal-kcal-lbl"> kcal</span>
+          </div>
+        </div>
+        <div class="meal-items">${items}</div>
+        ${tip}
+      </div>
+    </div>`;
+  }).join('');
+
+  if (d.type === 'gym') {
+    html += `<div class="gym-note">
+      <div class="gym-note-title">📌 Σχετικά με τη σημερινή ημέρα</div>
+      <div class="gym-note-text">Τρώς ~100-150 kcal περισσότερο σε σχέση με τις ημέρες ανάπαυσης για να υποστηρίξεις την αποκατάσταση μετά το γυμναστήριο.</div>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
+function renderShopping() {
+  const container = document.getElementById('shopping-list');
+  container.innerHTML = SHOPPING.map(section =>
+    `<div class="shop-section">
+      <div class="shop-section-title">${section.category}</div>
+      <div class="shop-items">
+        ${section.items.map(it =>
+          `<div class="shop-item">
+            <span class="shop-item-name">${it.item}</span>
+            <span class="shop-item-amount">${it.amount}</span>
+          </div>`
+        ).join('')}
+      </div>
+    </div>`
+  ).join('');
+}
+
+function selectDay(i) {
+  activeDay = i;
+  renderDayPills();
+  renderDayHeader(DAYS[i]);
+  renderMeals(DAYS[i]);
+}
+
+// Init
+renderDayPills();
+renderDayHeader(DAYS[0]);
+renderMeals(DAYS[0]);
+renderShopping();
+</script>
+</body>
+</html>
